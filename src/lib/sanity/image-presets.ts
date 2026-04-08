@@ -13,7 +13,7 @@ export const imagePresets: Record<ImagePresetName, ImagePreset> = {
     sizes: '(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw',
   },
   hero: {
-    width: 1600,
+    width: 1280,
     widths: [960, 1280, 1600, 1920],
     sizes: '(max-width: 1023px) 100vw, 66vw',
   },
