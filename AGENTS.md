@@ -200,6 +200,10 @@ If the schema evolves, update the TypeScript types first, then update the GROQ q
 
 ## Sanity & GROQ
 
+### Source of Truth
+- Sanity is the only content source for the Astro site. Do not add or restore local fallback content flows for pages, films, site settings, or images unless the user explicitly asks for a new fallback strategy.
+- If required Sanity content is missing, prefer failing clearly with an explicit error over silently substituting local placeholder data.
+
 ### Query Rules
 - All GROQ queries live in `src/lib/sanity/queries.ts`. Never write inline GROQ queries in page files.
 - Always request image `metadata` and `lqip` for blur-placeholder support.

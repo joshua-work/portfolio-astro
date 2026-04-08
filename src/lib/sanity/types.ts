@@ -25,9 +25,6 @@ export type FilmVideoEmbed = {
   watchUrl?: string;
   title?: string;
   poster?: SanityImage;
-  autoplay?: boolean;
-  muted?: boolean;
-  loop?: boolean;
 };
 
 export type SocialLink = {
