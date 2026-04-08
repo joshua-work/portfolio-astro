@@ -1,15 +1,11 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import { getContactPageWithSource } from '@/lib/content/site';
+import { getContactPage } from '@/lib/content/site';
 
-const contactPageResult = await getContactPageWithSource();
-const contactPage = contactPageResult.data;
+const contactPage = await getContactPage();
 ---
 
-<BaseLayout
-  title="Contact | Joshua Portfolio"
-  contentSourceDetails={[{ label: 'Contact', source: contactPageResult.source }]}
->
+<BaseLayout title="Contact | Joshua Portfolio">
   <section class="content-shell section-spacing">
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
       <div class="max-w-3xl">

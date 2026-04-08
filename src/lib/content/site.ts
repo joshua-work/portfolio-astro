@@ -3,6 +3,7 @@ import {
   aboutPageQuery,
   allFilmsQuery,
   contactPageQuery,
+  filmBySlugQuery,
   homePageQuery,
   siteSettingsQuery,
 } from '@/lib/sanity/queries';
@@ -15,22 +16,6 @@ import type {
   SiteSettings,
 } from '@/lib/sanity/types';
 
-import {
-  fallbackAboutPage,
-  fallbackContactPage,
-  fallbackFilms,
-  fallbackFilmSummaries,
-  fallbackHomePage,
-  fallbackSiteSettings,
-} from '@/lib/content/fallback';
-
-export type ContentSource = 'sanity' | 'fallback';
-
-export type ContentResult<T> = {
-  data: T;
-  source: ContentSource;
-};
-
 function normalizeFilm(film: Film): Film {
   return {
     ...film,
@@ -41,156 +26,91 @@ function normalizeFilm(film: Film): Film {
   };
 }
 
-async function fetchWithFallback<T>(
+async function fetchRequired<T>(
   query: string,
-  fallback: T,
+  missingMessage: string,
   params?: Record<string, string>,
-): Promise<ContentResult<T>> {
+): Promise<T> {
   if (!isSanityConfigured()) {
-    return {
-      data: fallback,
-      source: 'fallback',
-    };
+    throw new Error(
+      'Sanity is required but is not configured. Check PUBLIC_SANITY_PROJECT_ID and related environment variables.',
+    );
   }
 
-  try {
-    const client = sanityClient;
-
-    if (!client) {
-      return {
-        data: fallback,
-        source: 'fallback',
-      };
-    }
-
-    const result = await client.fetch<T | null>(query, params ?? {});
-    return {
-      data: result ?? fallback,
-      source: result ? 'sanity' : 'fallback',
-    };
-  } catch {
-    return {
-      data: fallback,
-      source: 'fallback',
-    };
+  if (!sanityClient) {
+    throw new Error(
+      'Sanity client is unavailable. Check PUBLIC_SANITY_PROJECT_ID and related environment variables.',
+    );
   }
+
+  const result = await sanityClient.fetch<T | null>(query, params ?? {});
+
+  if (result === null || result === undefined) {
+    throw new Error(missingMessage);
+  }
+
+  return result;
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const result = await getSiteSettingsWithSource();
-  return result.data;
-}
-
-export async function getSiteSettingsWithSource(): Promise<ContentResult<SiteSettings>> {
-  return fetchWithFallback(siteSettingsQuery, fallbackSiteSettings);
+  return fetchRequired(siteSettingsQuery, 'Missing required Sanity document: siteSettings.');
 }
 
 export async function getHomePage(): Promise<HomePage> {
-  const result = await getHomePageWithSource();
-  return result.data;
-}
-
-export async function getHomePageWithSource(): Promise<ContentResult<HomePage>> {
-  return fetchWithFallback(homePageQuery, fallbackHomePage);
+  return fetchRequired(homePageQuery, 'Missing required Sanity document: homePage.');
 }
 
 export async function getAboutPage(): Promise<AboutPage> {
-  const result = await getAboutPageWithSource();
-  return result.data;
-}
-
-export async function getAboutPageWithSource(): Promise<ContentResult<AboutPage>> {
-  return fetchWithFallback(aboutPageQuery, fallbackAboutPage);
+  return fetchRequired(aboutPageQuery, 'Missing required Sanity document: aboutPage.');
 }
 
 export async function getContactPage(): Promise<ContactPage> {
-  const result = await getContactPageWithSource();
-  return result.data;
-}
-
-export async function getContactPageWithSource(): Promise<ContentResult<ContactPage>> {
-  return fetchWithFallback(contactPageQuery, fallbackContactPage);
+  return fetchRequired(contactPageQuery, 'Missing required Sanity document: contactPage.');
 }
 
 export async function getAllFilms(): Promise<Film[]> {
-  const result = await getAllFilmsWithSource();
-  return result.data;
-}
+  const films = await fetchRequired<Film[]>(
+    allFilmsQuery,
+    'Missing required Sanity content: film entries.',
+  );
 
-export async function getAllFilmsWithSource(): Promise<ContentResult<Film[]>> {
-  const result = await fetchWithFallback(allFilmsQuery, fallbackFilms);
-
-  return {
-    ...result,
-    data: result.data.map(normalizeFilm),
-  };
+  return films.map(normalizeFilm);
 }
 
 export async function getFilmSummaries(): Promise<FilmSummary[]> {
-  const result = await getFilmSummariesWithSource();
-  return result.data;
-}
+  const films = await getAllFilms();
 
-export async function getFilmSummariesWithSource(): Promise<ContentResult<FilmSummary[]>> {
-  const result = await getAllFilmsWithSource();
-  const films = result.data;
-
-  return {
-    data: films.map((film) => ({
-      title: film.title,
-      year: film.year,
-      slug: film.slug,
-      type: film.type,
-      coverImage: film.coverImage,
-      tags: film.tags,
-      logline: film.logline,
-    })),
-    source: result.source,
-  };
+  return films.map((film) => ({
+    title: film.title,
+    year: film.year,
+    slug: film.slug,
+    type: film.type,
+    coverImage: film.coverImage,
+    tags: film.tags,
+    logline: film.logline,
+  }));
 }
 
 export async function getFeaturedFilms(): Promise<FilmSummary[]> {
-  const result = await getFeaturedFilmsWithSource();
-  return result.data;
-}
-
-export async function getFeaturedFilmsWithSource(): Promise<ContentResult<FilmSummary[]>> {
-  const [homePageResult, filmsResult] = await Promise.all([
-    getHomePageWithSource(),
-    getFilmSummariesWithSource(),
-  ]);
-  const filmMap = new Map(filmsResult.data.map((film) => [film.slug, film]));
-  const featured = homePageResult.data.featuredSlugs
+  const [homePage, films] = await Promise.all([getHomePage(), getFilmSummaries()]);
+  const filmMap = new Map(films.map((film) => [film.slug, film]));
+  const featured = homePage.featuredSlugs
     .map((slug) => filmMap.get(slug))
     .filter((film): film is FilmSummary => Boolean(film));
 
-  if (featured.length > 0) {
-    return {
-      data: featured,
-      source:
-        homePageResult.source === 'sanity' && filmsResult.source === 'sanity'
-          ? 'sanity'
-          : 'fallback',
-    };
+  if (featured.length === 0) {
+    throw new Error('No featured films could be resolved from homePage.featuredSlugs.');
   }
 
-  return {
-    data: fallbackFilmSummaries.slice(0, 6),
-    source: 'fallback',
-  };
+  return featured;
 }
 
-export async function getFilmBySlug(slug: string): Promise<Film | undefined> {
-  const result = await getFilmBySlugWithSource(slug);
-  return result.data;
-}
+export async function getFilmBySlug(slug: string): Promise<Film> {
+  const film = await fetchRequired<Film>(
+    filmBySlugQuery,
+    `Missing required Sanity film document for slug "${slug}".`,
+    { slug },
+  );
 
-export async function getFilmBySlugWithSource(
-  slug: string,
-): Promise<ContentResult<Film | undefined>> {
-  const result = await getAllFilmsWithSource();
-  return {
-    data: result.data.find((film) => film.slug === slug),
-    source: result.source,
-  };
+  return normalizeFilm(film);
 }

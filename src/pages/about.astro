@@ -1,15 +1,11 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import { getAboutPageWithSource } from '@/lib/content/site';
+import { getAboutPage } from '@/lib/content/site';
 
-const aboutPageResult = await getAboutPageWithSource();
-const aboutPage = aboutPageResult.data;
+const aboutPage = await getAboutPage();
 ---
 
-<BaseLayout
-  title="About | Joshua Portfolio"
-  contentSourceDetails={[{ label: 'About', source: aboutPageResult.source }]}
->
+<BaseLayout title="About | Joshua Portfolio">
   <section class="content-shell section-spacing">
     <div class="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.8fr)]">
       <div class="max-w-3xl">

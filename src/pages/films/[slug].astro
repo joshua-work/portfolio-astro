@@ -2,19 +2,18 @@
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import VideoFacade from '@/components/film/VideoFacade.svelte';
 import PortfolioImage from '@/components/ui/PortfolioImage.astro';
-import { getAllFilmsWithSource } from '@/lib/content/site';
+import { getAllFilms } from '@/lib/content/site';
 import { imagePresets } from '@/lib/sanity/image-presets';
 import { resolveImageSource } from '@/lib/sanity/image';
 import type { Film } from '@/lib/sanity/types';
 import type { PortableTextBlock } from '@portabletext/types';
 
 export async function getStaticPaths() {
-  const filmsResult = await getAllFilmsWithSource();
-  const films = filmsResult.data;
+  const films = await getAllFilms();
 
   return films.map((film) => ({
     params: { slug: film.slug },
-    props: { film, filmSource: filmsResult.source },
+    props: { film },
   }));
 }
 
@@ -25,7 +24,7 @@ function blockToText(block: PortableTextBlock) {
     .trim();
 }
 
-const { film, filmSource } = Astro.props as { film: Film; filmSource: 'sanity' | 'fallback' };
+const { film } = Astro.props as { film: Film };
 const mainVideoPoster =
   film.mainVideo &&
   resolveImageSource(film.mainVideo.poster ?? film.stills[0] ?? film.coverImage, {
@@ -35,11 +34,7 @@ const mainVideoPoster =
   });
 ---
 
-<BaseLayout
-  title={`${film.title} | Joshua Portfolio`}
-  description={film.logline}
-  contentSourceDetails={[{ label: 'Film', source: filmSource }]}
->
+<BaseLayout title={`${film.title} | Joshua Portfolio`} description={film.logline}>
   <section class="content-shell section-spacing">
     <div class="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.75fr)]">
       <div>

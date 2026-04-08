@@ -1,4 +1,3 @@
-import type { ImageMetadata } from 'astro';
 import type { PortableTextBlock } from '@portabletext/types';
 
 export type SanityImage = {
@@ -18,15 +17,6 @@ export type SanityImage = {
   caption?: string;
 };
 
-export type LocalImage = {
-  source: 'local';
-  asset: ImageMetadata;
-  alt?: string;
-  caption?: string;
-};
-
-export type PortfolioImage = LocalImage | SanityImage;
-
 export type VideoProvider = 'youtube' | 'vimeo' | 'custom';
 
 export type FilmVideoEmbed = {
@@ -34,7 +24,7 @@ export type FilmVideoEmbed = {
   embedUrl: string;
   watchUrl?: string;
   title?: string;
-  poster?: PortfolioImage;
+  poster?: SanityImage;
   autoplay?: boolean;
   muted?: boolean;
   loop?: boolean;
@@ -60,7 +50,7 @@ export type FilmSummary = {
   year: number;
   slug: string;
   type: string;
-  coverImage: PortfolioImage;
+  coverImage: SanityImage;
   tags: string[];
   logline: string;
 };
@@ -68,7 +58,7 @@ export type FilmSummary = {
 export type Film = FilmSummary & {
   runtime?: string;
   mainVideo?: FilmVideoEmbed;
-  stills: PortfolioImage[];
+  stills: SanityImage[];
   credits: CreditItem[];
   body: PortableTextBlock[];
 };
@@ -76,7 +66,7 @@ export type Film = FilmSummary & {
 export type SiteSettings = {
   siteTitle: string;
   siteDescription: string;
-  logo?: PortfolioImage;
+  logo?: SanityImage;
   primaryNav: NavItem[];
   footerNote: string;
   contactEmail: string;

@@ -2,23 +2,12 @@
 import FilmGrid from '@/components/film/FilmGrid.astro';
 import FilmGrain from '@/components/film/FilmGrain.svelte';
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import { getFilmSummariesWithSource, getHomePageWithSource } from '@/lib/content/site';
+import { getFilmSummaries, getHomePage } from '@/lib/content/site';
 
-const [homePageResult, filmsResult] = await Promise.all([
-  getHomePageWithSource(),
-  getFilmSummariesWithSource(),
-]);
-const homePage = homePageResult.data;
-const films = filmsResult.data;
+const [homePage, films] = await Promise.all([getHomePage(), getFilmSummaries()]);
 ---
 
-<BaseLayout
-  title="Joshua Portfolio"
-  contentSourceDetails={[
-    { label: 'Home', source: homePageResult.source },
-    { label: 'Films', source: filmsResult.source },
-  ]}
->
+<BaseLayout title="Joshua Portfolio">
   <section class="content-shell section-spacing">
     <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-surface/70 px-6 py-12 md:px-10 md:py-16">
       <div class="relative z-10 max-w-4xl">

@@ -3,10 +3,10 @@ import { Image } from 'astro:assets';
 
 import { buildImageUrl } from '@/lib/sanity/image';
 import { imagePresets, type ImagePresetName } from '@/lib/sanity/image-presets';
-import type { PortfolioImage } from '@/lib/sanity/types';
+import type { SanityImage } from '@/lib/sanity/types';
 
 type Props = {
-  image: PortfolioImage;
+  image: SanityImage;
   alt?: string;
   width?: number;
   widths?: number[];
@@ -29,15 +29,14 @@ const {
 
 const preset = variant ? imagePresets[variant] : undefined;
 const resolvedAlt = alt ?? image.alt ?? '';
-const isLocal = image.source === 'local';
 const resolvedWidth = width ?? preset?.width;
 
 if (!resolvedWidth) {
   throw new Error('PortfolioImage requires either a width or a variant.');
 }
 
-const sourceWidth = isLocal ? image.asset.width : image.asset.metadata.dimensions.width;
-const sourceHeight = isLocal ? image.asset.height : image.asset.metadata.dimensions.height;
+const sourceWidth = image.asset.metadata.dimensions.width;
+const sourceHeight = image.asset.metadata.dimensions.height;
 const height = Math.round(resolvedWidth * (sourceHeight / sourceWidth));
 const candidateWidths = (widths ?? preset?.widths)?.filter((candidateWidth) => candidateWidth <= sourceWidth);
 const resolvedWidths =
@@ -47,30 +46,14 @@ const resolvedWidths =
 const resolvedSizes = sizes ?? preset?.sizes;
 ---
 
-{
-  isLocal ? (
-    <Image
-      src={image.asset}
-      alt={resolvedAlt}
-      width={resolvedWidth}
-      height={height}
-      widths={resolvedWidths}
-      sizes={resolvedSizes}
-      loading={loading}
-      class={className}
-      format="webp"
-    />
-  ) : (
-    <Image
-      src={buildImageUrl(image, { width: resolvedWidth })}
-      alt={resolvedAlt}
-      width={resolvedWidth}
-      height={height}
-      widths={resolvedWidths}
-      sizes={resolvedSizes}
-      loading={loading}
-      class={className}
-      format="webp"
-    />
-  )
-}
+<Image
+  src={buildImageUrl(image, { width: resolvedWidth })}
+  alt={resolvedAlt}
+  width={resolvedWidth}
+  height={height}
+  widths={resolvedWidths}
+  sizes={resolvedSizes}
+  loading={loading}
+  class={className}
+  format="webp"
+/>
