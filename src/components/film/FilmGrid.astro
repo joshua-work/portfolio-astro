@@ -1,0 +1,265 @@
+---
+import PortfolioImage from '@/components/ui/PortfolioImage.astro';
+import type { FilmSummary } from '@/lib/sanity/types';
+
+type Props = {
+  films: FilmSummary[];
+  initialVisibleCount?: number;
+  loadMoreCount?: number;
+};
+
+const { films, initialVisibleCount = 6, loadMoreCount = 6 } = Astro.props;
+const sectionId = 'film-grid';
+---
+
+<section class="content-shell section-spacing" data-film-grid-section>
+  <div
+    id={sectionId}
+    class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+    data-initial-visible-count={initialVisibleCount}
+    data-load-more-count={loadMoreCount}
+  >
+    {
+      films.length > 0 ? (
+        films.map((film, index) => (
+          <article
+            class="group overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80"
+            data-film-card
+            data-film-index={index}
+          >
+            <a href={`/films/${film.slug}/`} class="block focus-ring">
+              <div class="overflow-hidden">
+                <PortfolioImage
+                  image={film.coverImage}
+                  width={900}
+                  sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                  class="aspect-[4/3] w-full object-cover transition-transform duration-[var(--duration-slow)] ease-[var(--easing-film)] group-hover:scale-[1.03]"
+                  alt={film.title}
+                />
+              </div>
+              <div class="flex flex-col gap-4 p-6">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.24em] text-accent">{film.type}</p>
+                    <h2 class="mt-3 font-display text-3xl leading-tight text-primary">
+                      {film.title}
+                    </h2>
+                  </div>
+                  <p class="text-sm uppercase tracking-[0.2em] text-secondary">{film.year}</p>
+                </div>
+                <p class="text-sm leading-7 text-secondary">{film.logline}</p>
+                <p class="text-xs uppercase tracking-[0.18em] text-secondary/80">
+                  {film.tags.join(' / ')}
+                </p>
+              </div>
+            </a>
+          </article>
+        ))
+      ) : (
+        <article class="rounded-3xl border border-dashed border-white/15 bg-surface/70 p-8 text-secondary">
+          No projects are available yet. Add entries in Sanity or keep using the local fallback data while the migration is in progress.
+        </article>
+      )
+    }
+  </div>
+
+  {
+    films.length > initialVisibleCount && (
+      <div class="mt-8 flex flex-col items-center gap-3">
+        <p
+          class="text-sm uppercase tracking-[0.2em] text-secondary"
+          aria-live="polite"
+          data-film-grid-status
+        >
+          Showing {Math.min(initialVisibleCount, films.length)} of {films.length} works
+        </p>
+        <div
+          class="film-grid-sentinel flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-surface/70 px-6 py-3 text-xs uppercase tracking-[0.22em] text-secondary"
+          data-film-grid-sentinel
+          aria-controls={sectionId}
+          aria-hidden="true"
+        >
+          Scroll to load more
+        </div>
+      </div>
+    )
+  }
+</section>
+
+<script>
+  const filmGridCleanupMap = new WeakMap<HTMLElement, () => void>();
+
+  const cleanupFilmGridSection = (section: Element) => {
+    if (!(section instanceof HTMLElement)) {
+      return;
+    }
+
+    const cleanup = filmGridCleanupMap.get(section);
+
+    if (typeof cleanup === 'function') {
+      cleanup();
+    }
+
+    filmGridCleanupMap.delete(section);
+    delete section.dataset.filmGridReady;
+  };
+
+  const initFilmGridSection = (section: Element) => {
+    if (!(section instanceof HTMLElement) || section.dataset.filmGridReady === 'true') {
+      return;
+    }
+
+    const grid = section.querySelector('[id][data-initial-visible-count][data-load-more-count]');
+    const status = section.querySelector('[data-film-grid-status]');
+    const sentinel = section.querySelector('[data-film-grid-sentinel]');
+
+    if (!(grid instanceof HTMLElement) || !(status instanceof HTMLElement) || !(sentinel instanceof HTMLElement)) {
+      return;
+    }
+
+    const cards = Array.from(grid.querySelectorAll('[data-film-card]'));
+    const initialVisibleCount = Number.parseInt(grid.dataset.initialVisibleCount ?? '6', 10);
+    const loadMoreCount = Number.parseInt(grid.dataset.loadMoreCount ?? '6', 10);
+    let visibleCount = initialVisibleCount;
+
+    const revealRange = (startIndex: number, endIndex: number) => {
+      cards.slice(startIndex, endIndex).forEach((card, offset) => {
+        if (!(card instanceof HTMLElement)) {
+          return;
+        }
+
+        card.hidden = false;
+        card.dataset.revealState = 'pending';
+        card.style.setProperty('--film-reveal-delay', `${offset * 80}ms`);
+
+        requestAnimationFrame(() => {
+          card.dataset.revealState = 'visible';
+        });
+      });
+    };
+
+    const updateGrid = (animateFromIndex?: number) => {
+      cards.forEach((card, index) => {
+        if (!(card instanceof HTMLElement)) {
+          return;
+        }
+
+        if (index >= visibleCount) {
+          card.hidden = true;
+          card.dataset.revealState = 'hidden';
+          card.style.removeProperty('--film-reveal-delay');
+          return;
+        }
+
+        if (typeof animateFromIndex === 'number' && index >= animateFromIndex) {
+          return;
+        }
+
+        card.hidden = false;
+        card.dataset.revealState = 'visible';
+        card.style.setProperty('--film-reveal-delay', '0ms');
+      });
+
+      if (typeof animateFromIndex === 'number') {
+        revealRange(animateFromIndex, visibleCount);
+      }
+
+      status.textContent = `Showing ${Math.min(visibleCount, cards.length)} of ${cards.length} works`;
+      sentinel.hidden = visibleCount >= cards.length;
+    };
+
+    updateGrid();
+
+    if (!('IntersectionObserver' in window)) {
+      visibleCount = cards.length;
+      updateGrid(initialVisibleCount);
+      section.dataset.filmGridReady = 'true';
+      filmGridCleanupMap.set(section, () => {});
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (!entry?.isIntersecting || visibleCount >= cards.length) {
+          return;
+        }
+
+        const nextVisibleCount = Math.min(visibleCount + loadMoreCount, cards.length);
+        const previousVisibleCount = visibleCount;
+        visibleCount = nextVisibleCount;
+        updateGrid(previousVisibleCount);
+      },
+      {
+        rootMargin: '0px 0px 240px 0px',
+        threshold: 0.15,
+      },
+    );
+
+    observer.observe(sentinel);
+
+    section.dataset.filmGridReady = 'true';
+    filmGridCleanupMap.set(section, () => {
+      observer.disconnect();
+    });
+  };
+
+  const initFilmGrids = () => {
+    document.querySelectorAll('[data-film-grid-section]').forEach((section) => {
+      cleanupFilmGridSection(section);
+      initFilmGridSection(section);
+    });
+  };
+
+  initFilmGrids();
+  document.addEventListener('astro:page-load', initFilmGrids);
+  document.addEventListener('astro:before-swap', () => {
+    document.querySelectorAll('[data-film-grid-section]').forEach((section) => {
+      cleanupFilmGridSection(section);
+    });
+  });
+</script>
+
+<style>
+  [data-film-card] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  [data-film-card][data-reveal-state='pending'] {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  [data-film-card][data-reveal-state='visible'] {
+    animation: film-card-reveal var(--duration-slow) var(--easing-film) both;
+    animation-delay: var(--film-reveal-delay, 0ms);
+  }
+
+  .film-grid-sentinel[hidden] {
+    display: none;
+  }
+
+  @keyframes film-card-reveal {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-film-card],
+    [data-film-card][data-reveal-state='pending'],
+    [data-film-card][data-reveal-state='visible'] {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

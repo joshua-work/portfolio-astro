@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+
+  /* Color layers */
+  --color-bg-base: #0a0a0a;
+  --color-bg-raised: #141414;
+  --color-bg-overlay: #1e1e1e;
+
+  /* Typography */
+  --color-text-primary: #e8e2d9;
+  --color-text-secondary: #8a8480;
+  --color-text-muted: #4a4540;
+
+  /* Accent */
+  --color-accent: #c8a96e;
+  --color-accent-dim: #8a7048;
+
+  /* Spacing */
+  --space-section: 120px;
+  --space-section-mobile: 60px;
+  --space-container: 1.5rem;
+
+  /* Typography scale */
+  --font-display: "Cormorant Garamond", serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Animation */
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
+  --easing-film: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+@theme {
+  --color-background: var(--color-bg-base);
+  --color-surface: var(--color-bg-raised);
+  --color-overlay: var(--color-bg-overlay);
+  --color-primary: var(--color-text-primary);
+  --color-secondary: var(--color-text-secondary);
+  --color-muted: var(--color-text-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-dim: var(--color-accent-dim);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+html {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgb(200 169 110 / 0.12), transparent 30%),
+    linear-gradient(180deg, rgb(20 20 20 / 0.96), rgb(10 10 10 / 1));
+  color: var(--color-text-primary);
+  text-rendering: optimizeLegibility;
+}
+
+main {
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.page-shell {
+  min-height: 100vh;
+}
+
+.content-shell {
+  margin-inline: auto;
+  width: min(100%, 1280px);
+  padding-inline: var(--space-container);
+}
+
+.section-spacing {
+  padding-block: var(--space-section-mobile);
+}
+
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 4px;
+  transition:
+    outline-color var(--duration-fast) var(--easing-film),
+    outline-offset var(--duration-fast) var(--easing-film);
+}
+
+.focus-ring:focus-visible {
+  outline-color: var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  .section-spacing {
+    padding-block: var(--space-section);
+  }
+}

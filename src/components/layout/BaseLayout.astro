@@ -1,0 +1,65 @@
+---
+import { ClientRouter } from 'astro:transitions';
+
+import Footer from '@/components/layout/Footer.astro';
+import NavBar from '@/components/layout/NavBar.astro';
+import {
+  getSiteSettingsWithSource,
+  type ContentSource,
+} from '@/lib/content/site';
+import '@/styles/global.css';
+
+type ContentSourceDetail = {
+  label: string;
+  source: ContentSource;
+};
+
+type Props = {
+  title?: string;
+  description?: string;
+  contentSourceDetails?: ContentSourceDetail[];
+};
+
+const {
+  title = 'Joshua Portfolio',
+  description = 'A cinematic portfolio scaffold built with Astro and Svelte.',
+  contentSourceDetails = [],
+} = Astro.props;
+const settingsResult = await getSiteSettingsWithSource();
+const settings = settingsResult.data;
+const allContentSources = [{ label: 'Settings', source: settingsResult.source }, ...contentSourceDetails];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <div class="page-shell bg-background text-primary">
+      <NavBar settings={settings} currentPath={Astro.url.pathname} />
+      <div class="content-shell pt-4">
+        <div class="rounded-full border border-white/10 bg-surface/70 px-4 py-3 text-xs uppercase tracking-[0.2em] text-secondary backdrop-blur-sm">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-accent">Content Source</span>
+            {
+              allContentSources.map((detail) => (
+                <span class="rounded-full border border-white/10 bg-background/50 px-3 py-2">
+                  {detail.label}: {detail.source}
+                </span>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+      <main>
+        <slot />
+      </main>
+      <Footer settings={settings} />
+    </div>
+  </body>
+</html>

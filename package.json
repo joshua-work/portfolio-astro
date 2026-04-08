@@ -1,0 +1,28 @@
+{
+  "name": "joshua-portfolio-test",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^7.1.0",
+    "@portabletext/types": "^2.0.15",
+    "@sanity/client": "^6.28.0",
+    "@sanity/image-url": "^1.1.0",
+    "@tailwindcss/vite": "^4.1.4",
+    "astro": "^5.7.0",
+    "svelte": "^5.28.2",
+    "tailwindcss": "^4.1.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/node": "^22.14.1",
+    "typescript": "^5.8.3"
+  }
+}

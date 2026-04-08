@@ -1,0 +1,56 @@
+---
+import { Image } from 'astro:assets';
+
+import { buildImageUrl } from '@/lib/sanity/image';
+import type { PortfolioImage } from '@/lib/sanity/types';
+
+type Props = {
+  image: PortfolioImage;
+  alt?: string;
+  width: number;
+  class?: string;
+  sizes?: string;
+  loading?: 'eager' | 'lazy';
+};
+
+const {
+  image,
+  alt,
+  width,
+  class: className = '',
+  sizes,
+  loading = 'lazy',
+} = Astro.props;
+
+const resolvedAlt = alt ?? image.alt ?? '';
+const isLocal = image.source === 'local';
+const sourceWidth = isLocal ? image.asset.width : image.asset.metadata.dimensions.width;
+const sourceHeight = isLocal ? image.asset.height : image.asset.metadata.dimensions.height;
+const height = Math.round(width * (sourceHeight / sourceWidth));
+---
+
+{
+  isLocal ? (
+    <Image
+      src={image.asset}
+      alt={resolvedAlt}
+      width={width}
+      height={height}
+      sizes={sizes}
+      loading={loading}
+      class={className}
+      format="webp"
+    />
+  ) : (
+    <Image
+      src={buildImageUrl(image, { width })}
+      alt={resolvedAlt}
+      width={width}
+      height={height}
+      sizes={sizes}
+      loading={loading}
+      class={className}
+      format="webp"
+    />
+  )
+}

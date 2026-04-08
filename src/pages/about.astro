@@ -1,0 +1,43 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import { getAboutPageWithSource } from '@/lib/content/site';
+
+const aboutPageResult = await getAboutPageWithSource();
+const aboutPage = aboutPageResult.data;
+---
+
+<BaseLayout
+  title="About | Joshua Portfolio"
+  contentSourceDetails={[{ label: 'About', source: aboutPageResult.source }]}
+>
+  <section class="content-shell section-spacing">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.8fr)]">
+      <div class="max-w-3xl">
+        <p class="text-sm uppercase tracking-[0.22em] text-accent">{aboutPage.eyebrow}</p>
+        <h1 class="mt-4 font-display text-5xl leading-none md:text-7xl">{aboutPage.title}</h1>
+        <p class="mt-8 text-base leading-8 text-secondary md:text-lg">{aboutPage.intro}</p>
+
+        <div class="mt-10 space-y-6">
+          {
+            aboutPage.bio.map((paragraph) => (
+              <p class="text-base leading-8 text-secondary">{paragraph}</p>
+            ))
+          }
+        </div>
+      </div>
+
+      <aside class="h-fit rounded-[2rem] border border-white/10 bg-surface/80 p-6 md:p-8">
+        <p class="text-sm uppercase tracking-[0.22em] text-accent">Highlights</p>
+        <ul class="mt-6 space-y-4">
+          {
+            aboutPage.highlights.map((highlight) => (
+              <li class="border-b border-white/8 pb-4 text-sm leading-7 text-secondary last:border-b-0 last:pb-0">
+                {highlight}
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

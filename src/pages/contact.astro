@@ -1,0 +1,48 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import { getContactPageWithSource } from '@/lib/content/site';
+
+const contactPageResult = await getContactPageWithSource();
+const contactPage = contactPageResult.data;
+---
+
+<BaseLayout
+  title="Contact | Joshua Portfolio"
+  contentSourceDetails={[{ label: 'Contact', source: contactPageResult.source }]}
+>
+  <section class="content-shell section-spacing">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+      <div class="max-w-3xl">
+        <p class="text-sm uppercase tracking-[0.22em] text-accent">{contactPage.eyebrow}</p>
+        <h1 class="mt-4 font-display text-5xl leading-none md:text-7xl">{contactPage.title}</h1>
+        <p class="mt-8 text-base leading-8 text-secondary md:text-lg">{contactPage.intro}</p>
+      </div>
+
+      <div class="rounded-[2rem] border border-white/10 bg-surface/80 p-6 md:p-8">
+        <p class="text-sm uppercase tracking-[0.22em] text-accent">Get in Touch</p>
+        <a
+          href={`mailto:${contactPage.email}`}
+          class="focus-ring mt-6 inline-flex min-h-11 items-center font-display text-3xl leading-tight text-primary transition-colors duration-[var(--duration-base)] ease-[var(--easing-film)] hover:text-accent"
+        >
+          {contactPage.email}
+        </a>
+        <p class="mt-6 text-sm leading-7 text-secondary">{contactPage.availability}</p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          {
+            contactPage.socialLinks.map((link) => (
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                class="focus-ring inline-flex min-h-11 items-center rounded-full border border-white/10 px-4 text-sm uppercase tracking-[0.2em] text-secondary transition-colors duration-[var(--duration-base)] ease-[var(--easing-film)] hover:text-accent"
+              >
+                {link.label}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,54 @@
+---
+import FilmGrid from '@/components/film/FilmGrid.astro';
+import FilmGrain from '@/components/film/FilmGrain.svelte';
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import { getFilmSummariesWithSource, getHomePageWithSource } from '@/lib/content/site';
+
+const [homePageResult, filmsResult] = await Promise.all([
+  getHomePageWithSource(),
+  getFilmSummariesWithSource(),
+]);
+const homePage = homePageResult.data;
+const films = filmsResult.data;
+---
+
+<BaseLayout
+  title="Joshua Portfolio"
+  contentSourceDetails={[
+    { label: 'Home', source: homePageResult.source },
+    { label: 'Films', source: filmsResult.source },
+  ]}
+>
+  <section class="content-shell section-spacing">
+    <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-surface/70 px-6 py-12 md:px-10 md:py-16">
+      <div class="relative z-10 max-w-4xl">
+        <p class="text-sm uppercase tracking-[0.24em] text-accent">{homePage.eyebrow}</p>
+        <h1 class="mt-5 font-display text-5xl leading-none text-primary md:text-7xl">
+          {homePage.title}
+        </h1>
+        <p class="mt-8 max-w-2xl text-base leading-8 text-secondary md:text-lg">
+          {homePage.intro}
+        </p>
+
+        <div class="mt-10 flex flex-wrap gap-3">
+          {
+            homePage.focusAreas.map((area) => (
+              <span class="rounded-full border border-white/10 bg-background/40 px-4 py-3 text-xs uppercase tracking-[0.22em] text-secondary">
+                {area}
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <FilmGrain client:visible opacity={0.14} size={0.9} />
+    </div>
+  </section>
+
+  <FilmGrid films={films} />
+
+  <section class="content-shell pb-[var(--space-section-mobile)] lg:pb-[var(--space-section)]">
+    <div class="rounded-[2rem] border border-white/10 bg-background/40 px-6 py-8 md:px-8">
+      <p class="max-w-3xl text-sm leading-7 text-secondary">{homePage.closingNote}</p>
+    </div>
+  </section>
+</BaseLayout>
