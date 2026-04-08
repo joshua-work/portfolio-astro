@@ -12,9 +12,8 @@
 
   let isActivated = $state(false);
   let hasLoaded = $state(false);
+  let iframeElement = $state<HTMLIFrameElement | null>(null);
 
-  const autoplayEnabled = $derived(video.autoplay ?? true);
-  const mutedForPlayback = $derived(video.muted ?? autoplayEnabled);
   const iframeTitle = $derived(video.title?.trim() || `${title} video player`);
   const iframeSrc = $derived.by(() => {
     if (!isActivated) {
@@ -24,52 +23,20 @@
     try {
       const url = new URL(video.embedUrl);
 
-      if (autoplayEnabled) {
-        url.searchParams.set('autoplay', '1');
-      }
+      url.searchParams.set('autoplay', '1');
 
       if (video.provider === 'youtube') {
+        url.searchParams.set('enablejsapi', '1');
         url.searchParams.set('playsinline', '1');
         url.searchParams.set('rel', '0');
-
-        if (mutedForPlayback) {
-          url.searchParams.set('mute', '1');
-        }
-
-        if (video.loop) {
-          const videoId = url.pathname.split('/').pop();
-
-          if (videoId) {
-            url.searchParams.set('loop', '1');
-            url.searchParams.set('playlist', videoId);
-          }
-        }
       } else if (video.provider === 'vimeo') {
-        if (mutedForPlayback) {
-          url.searchParams.set('muted', '1');
-        }
-
-        if (video.loop) {
-          url.searchParams.set('loop', '1');
-        }
-      } else {
-        if (mutedForPlayback) {
-          url.searchParams.set('mute', '1');
-        }
+        url.searchParams.set('api', '1');
       }
 
       return url.toString();
     } catch {
       const separator = video.embedUrl.includes('?') ? '&' : '?';
-      const params = [];
-
-      if (autoplayEnabled) {
-        params.push('autoplay=1');
-      }
-
-      if (mutedForPlayback) {
-        params.push('mute=1');
-      }
+      const params = ['autoplay=1'];
 
       return params.length > 0 ? `${video.embedUrl}${separator}${params.join('&')}` : video.embedUrl;
     }
@@ -78,11 +45,41 @@
   const state = $derived(isActivated ? (hasLoaded ? 'playing' : 'loading') : 'idle');
 
   function activatePlayer() {
+    hasLoaded = false;
     isActivated = true;
+  }
+
+  function requestPlayback() {
+    if (!iframeElement?.contentWindow) {
+      return;
+    }
+
+    if (video.provider === 'youtube') {
+      iframeElement.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: 'playVideo',
+          args: [],
+        }),
+        '*',
+      );
+
+      return;
+    }
+
+    if (video.provider === 'vimeo') {
+      iframeElement.contentWindow.postMessage(
+        JSON.stringify({
+          method: 'play',
+        }),
+        '*',
+      );
+    }
   }
 
   function handleLoad() {
     hasLoaded = true;
+    requestPlayback();
   }
 </script>
 
@@ -93,15 +90,48 @@
   data-state={state}
 >
   {#if isActivated}
-    <div class="aspect-video">
+    <div class="relative aspect-video bg-background">
       <iframe
-        class="h-full w-full"
+        bind:this={iframeElement}
+        class={`h-full w-full transition-opacity duration-[var(--duration-base)] ease-[var(--easing-film)] ${
+          hasLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
         src={iframeSrc}
         title={iframeTitle}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen
         on:load={handleLoad}
       />
+
+      <div
+        aria-hidden="true"
+        class={`pointer-events-none absolute inset-0 transition-opacity duration-[var(--duration-base)] ease-[var(--easing-film)] ${
+          hasLoaded ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {#if poster.lqip}
+          <div
+            class="absolute inset-0 scale-105 blur-2xl"
+            style={`background-image: url("${poster.lqip}"); background-position: center; background-size: cover; background-repeat: no-repeat;`}
+          />
+        {/if}
+        <img
+          src={poster.src}
+          srcset={poster.srcSet}
+          sizes={poster.sizes}
+          alt=""
+          class="absolute inset-0 h-full w-full scale-[1.04] object-cover"
+          loading="eager"
+          decoding="async"
+        />
+        <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70" />
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,110,0.18),transparent_42%)]" />
+        <div class="relative flex h-full w-full items-center justify-center p-5">
+          <span class="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/45 px-6 py-5 text-sm uppercase tracking-[0.24em] text-primary backdrop-blur-sm">
+            Loading
+          </span>
+        </div>
+      </div>
     </div>
   {:else}
     <button

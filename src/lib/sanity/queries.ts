@@ -47,9 +47,6 @@ export const filmDetailProjection = `
     embedUrl,
     watchUrl,
     title,
-    autoplay,
-    muted,
-    loop,
     poster{
       asset->{
         _id,
