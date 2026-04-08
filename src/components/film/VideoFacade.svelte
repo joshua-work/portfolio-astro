@@ -120,6 +120,8 @@
       <img
         aria-hidden="true"
         src={poster.src}
+        srcset={poster.srcSet}
+        sizes={poster.sizes}
         alt=""
         class="absolute inset-0 h-full w-full object-cover transition-transform duration-[var(--duration-slow)] ease-[var(--easing-film)] group-hover:scale-[1.04] group-focus-visible:scale-[1.04]"
         loading="eager"

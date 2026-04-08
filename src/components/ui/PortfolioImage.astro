@@ -2,12 +2,15 @@
 import { Image } from 'astro:assets';
 
 import { buildImageUrl } from '@/lib/sanity/image';
+import { imagePresets, type ImagePresetName } from '@/lib/sanity/image-presets';
 import type { PortfolioImage } from '@/lib/sanity/types';
 
 type Props = {
   image: PortfolioImage;
   alt?: string;
-  width: number;
+  width?: number;
+  widths?: number[];
+  variant?: ImagePresetName;
   class?: string;
   sizes?: string;
   loading?: 'eager' | 'lazy';
@@ -17,16 +20,31 @@ const {
   image,
   alt,
   width,
+  widths,
+  variant,
   class: className = '',
   sizes,
   loading = 'lazy',
 } = Astro.props;
 
+const preset = variant ? imagePresets[variant] : undefined;
 const resolvedAlt = alt ?? image.alt ?? '';
 const isLocal = image.source === 'local';
+const resolvedWidth = width ?? preset?.width;
+
+if (!resolvedWidth) {
+  throw new Error('PortfolioImage requires either a width or a variant.');
+}
+
 const sourceWidth = isLocal ? image.asset.width : image.asset.metadata.dimensions.width;
 const sourceHeight = isLocal ? image.asset.height : image.asset.metadata.dimensions.height;
-const height = Math.round(width * (sourceHeight / sourceWidth));
+const height = Math.round(resolvedWidth * (sourceHeight / sourceWidth));
+const candidateWidths = (widths ?? preset?.widths)?.filter((candidateWidth) => candidateWidth <= sourceWidth);
+const resolvedWidths =
+  candidateWidths && candidateWidths.length > 0
+    ? Array.from(new Set([...candidateWidths, resolvedWidth])).sort((left, right) => left - right)
+    : undefined;
+const resolvedSizes = sizes ?? preset?.sizes;
 ---
 
 {
@@ -34,20 +52,22 @@ const height = Math.round(width * (sourceHeight / sourceWidth));
     <Image
       src={image.asset}
       alt={resolvedAlt}
-      width={width}
+      width={resolvedWidth}
       height={height}
-      sizes={sizes}
+      widths={resolvedWidths}
+      sizes={resolvedSizes}
       loading={loading}
       class={className}
       format="webp"
     />
   ) : (
     <Image
-      src={buildImageUrl(image, { width })}
+      src={buildImageUrl(image, { width: resolvedWidth })}
       alt={resolvedAlt}
-      width={width}
+      width={resolvedWidth}
       height={height}
-      sizes={sizes}
+      widths={resolvedWidths}
+      sizes={resolvedSizes}
       loading={loading}
       class={className}
       format="webp"
