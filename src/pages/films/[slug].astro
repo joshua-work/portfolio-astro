@@ -3,6 +3,7 @@ import BaseLayout from '@/components/layout/BaseLayout.astro';
 import VideoFacade from '@/components/film/VideoFacade.svelte';
 import PortfolioImage from '@/components/ui/PortfolioImage.astro';
 import { getAllFilmsWithSource } from '@/lib/content/site';
+import { imagePresets } from '@/lib/sanity/image-presets';
 import { resolveImageSource } from '@/lib/sanity/image';
 import type { Film } from '@/lib/sanity/types';
 import type { PortableTextBlock } from '@portabletext/types';
@@ -27,7 +28,11 @@ function blockToText(block: PortableTextBlock) {
 const { film, filmSource } = Astro.props as { film: Film; filmSource: 'sanity' | 'fallback' };
 const mainVideoPoster =
   film.mainVideo &&
-  resolveImageSource(film.mainVideo.poster ?? film.stills[0] ?? film.coverImage, { width: 1600 });
+  resolveImageSource(film.mainVideo.poster ?? film.stills[0] ?? film.coverImage, {
+    width: imagePresets.hero.width,
+    widths: imagePresets.hero.widths,
+    sizes: imagePresets.hero.sizes,
+  });
 ---
 
 <BaseLayout
@@ -55,8 +60,7 @@ const mainVideoPoster =
           <div class="mt-10 overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80">
             <PortfolioImage
               image={film.coverImage}
-              width={1600}
-              sizes="(max-width: 1023px) 100vw, 66vw"
+              variant="hero"
               alt={film.title}
               class="aspect-video w-full object-cover"
               loading="eager"

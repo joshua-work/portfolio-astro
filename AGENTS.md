@@ -8,6 +8,49 @@ This repository has already been initialized with a minimal Astro scaffold. The 
 
 ---
 
+## Deployment Status
+
+The production deployment flow is already working and should be treated as the current source of truth unless the user explicitly wants to change platforms or workflow.
+
+- Git remote `origin` points to `https://github.com/joshua-work/portfolio-astro.git`
+- The primary production branch is `main`
+- The site is deployed on Cloudflare Pages
+- Cloudflare Pages is connected directly to GitHub for automatic production deploys on pushes to `main`
+- A Sanity webhook is configured to trigger Cloudflare Pages rebuilds when published content changes in the production dataset
+
+### Current Publish Paths
+
+There are two separate publish paths and agents should keep them distinct:
+
+1. Code changes:
+   `local repo -> git commit -> git push origin main -> Cloudflare Pages auto-builds -> production site updates`
+2. Content changes:
+   `Sanity Studio publish -> Sanity webhook -> Cloudflare Pages deploy hook -> production site rebuilds`
+
+### Deployment Guidance
+
+- Do not tell the user they need a GitHub commit for ordinary Sanity content edits
+- Do not replace the Cloudflare Pages deployment workflow with Vercel-oriented instructions unless the user explicitly asks to migrate
+- Do not expose or commit the Cloudflare Pages deploy hook URL or webhook secrets into the repository
+- When discussing deployment issues, distinguish clearly between code deploys and Sanity content-triggered rebuilds
+- Keep Astro site environment variables configured in Cloudflare Pages project settings rather than hardcoding them in source files
+
+### Cloudflare Pages Notes
+
+- This project currently deploys as a static Astro site on Cloudflare Pages
+- Expected build command: `npm run build`
+- Expected output directory: `dist`
+- Production branch: `main`
+- If content updates do not appear on the site, inspect Sanity webhook delivery and Cloudflare Pages deployment logs before changing app code
+
+### Sanity Webhook Notes
+
+- The webhook is intended to rebuild the Cloudflare Pages site after published content changes in the production dataset
+- Relevant document types in this project commonly include `film`, `siteSettings`, `homePage`, `aboutPage`, `contactPage`, and `tag`
+- Studio or schema code changes still require a normal Git commit and push; the webhook only covers Sanity-hosted content updates
+
+---
+
 ## Core Tech Stack
 
 | Layer | Tool | Role |
@@ -17,7 +60,7 @@ This repository has already been initialized with a minimal Astro scaffold. The 
 | Headless UI | Bits UI | Accessible component primitives (unstyled) |
 | Styling | Tailwind CSS v4 + CSS Variables | Utility classes + design token system |
 | CMS | Sanity | Content management, image CDN, Portable Text |
-| Deployment | Vercel (Hobby) | Static hosting, CDN, webhook-triggered rebuilds |
+| Deployment | Cloudflare Pages | Static hosting, CDN, GitHub-triggered deploys, Sanity webhook-triggered rebuilds |
 
 ---
 
