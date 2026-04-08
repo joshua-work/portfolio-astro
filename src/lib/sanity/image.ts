@@ -1,7 +1,7 @@
 import imageUrlBuilder from '@sanity/image-url';
 
 import { sanityClient } from '@/lib/sanity/client';
-import type { PortfolioImage, SanityImage } from '@/lib/sanity/types';
+import type { SanityImage } from '@/lib/sanity/types';
 
 type ImageOptions = {
   width: number;
@@ -38,20 +38,7 @@ export type ResolvedImageSource = {
   lqip?: string;
 };
 
-export function resolveImageSource(
-  image: PortfolioImage,
-  options: ImageOptions,
-): ResolvedImageSource {
-  if (image.source === 'local') {
-    return {
-      src: image.asset.src,
-      width: image.asset.width,
-      height: image.asset.height,
-      sizes: options.sizes,
-      alt: image.alt,
-    };
-  }
-
+export function resolveImageSource(image: SanityImage, options: ImageOptions): ResolvedImageSource {
   const candidateWidths = options.widths?.filter(
     (candidateWidth) => candidateWidth <= image.asset.metadata.dimensions.width,
   );
