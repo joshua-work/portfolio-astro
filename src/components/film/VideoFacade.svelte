@@ -159,15 +159,39 @@
       />
       <div
         aria-hidden="true"
-        class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70 transition-opacity duration-[var(--duration-base)] ease-[var(--easing-film)] group-hover:opacity-80 group-focus-visible:opacity-80"
-      />
-      <div
-        aria-hidden="true"
-        class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,110,0.24),transparent_42%)] opacity-0 transition-opacity duration-[var(--duration-slow)] ease-[var(--easing-film)] group-hover:opacity-100 group-focus-visible:opacity-100"
+        class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70"
       />
       <div class="relative flex h-full w-full items-center justify-center p-5">
-        <span class="flex min-h-11 min-w-11 -translate-y-0 items-center justify-center rounded-full border border-white/20 bg-black/40 px-6 py-5 text-sm uppercase tracking-[0.24em] text-primary shadow-[0_0_0_rgba(0,0,0,0)] backdrop-blur-sm transition-all duration-[var(--duration-base)] ease-[var(--easing-film)] group-hover:-translate-y-0.5 group-hover:border-[var(--color-accent)] group-hover:bg-black/55 group-hover:text-[var(--color-accent)] group-hover:shadow-[0_18px_48px_rgba(0,0,0,0.35)] group-focus-visible:-translate-y-0.5 group-focus-visible:border-[var(--color-accent)] group-focus-visible:bg-black/55 group-focus-visible:text-[var(--color-accent)] group-focus-visible:shadow-[0_18px_48px_rgba(0,0,0,0.35)]">
-          Play
+        <span class="video-play-button flex min-h-11 min-w-11 -translate-y-0 items-center justify-center rounded-full px-6 py-5 text-sm uppercase tracking-[0.24em] text-primary backdrop-blur-sm transition-[transform,color] duration-[var(--duration-slow)] ease-[var(--easing-film)] group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5">
+          <svg
+            aria-hidden="true"
+            class="video-play-button-orbit absolute inset-0 h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <rect
+              class="video-play-button-outline"
+              x="0.75"
+              y="0.75"
+              width="98.5"
+              height="98.5"
+              rx="50"
+              ry="50"
+              vector-effect="non-scaling-stroke"
+            />
+            <rect
+              class="video-play-button-orbit-path"
+              x="0.75"
+              y="0.75"
+              width="98.5"
+              height="98.5"
+              rx="50"
+              ry="50"
+              pathLength="100"
+              vector-effect="non-scaling-stroke"
+            />
+          </svg>
+          <span class="relative z-10">Play</span>
         </span>
       </div>
     </button>
@@ -182,3 +206,65 @@
     </div>
   </noscript>
 </div>
+
+<style>
+  .video-play-button {
+    position: relative;
+    isolation: isolate;
+    background-color: rgb(0 0 0 / 0.4);
+    overflow: hidden;
+  }
+
+  .video-play-button-orbit {
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .video-play-button-outline {
+    fill: none;
+    stroke: rgb(232 226 217 / 0.14);
+    stroke-width: 1.25;
+  }
+
+  .video-play-button-orbit-path {
+    fill: none;
+    stroke: rgb(255 245 224 / 0.96);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-dasharray: 12 88;
+    stroke-dashoffset: 0;
+    opacity: 0;
+    filter: drop-shadow(0 0 2px rgb(255 245 224 / 0.16));
+    transition: opacity 420ms var(--easing-film);
+  }
+
+  .group:hover .video-play-button,
+  .group:focus-visible .video-play-button,
+  .group:focus-within .video-play-button {
+    color: color-mix(in srgb, var(--color-text-primary) 88%, var(--color-accent) 12%);
+  }
+
+  .group:hover .video-play-button-outline,
+  .group:focus-visible .video-play-button-outline,
+  .group:focus-within .video-play-button-outline {
+    stroke: rgb(232 226 217 / 0.12);
+  }
+
+  .group:hover .video-play-button-orbit-path,
+  .group:focus-visible .video-play-button-orbit-path,
+  .group:focus-within .video-play-button-orbit-path {
+    opacity: 1;
+    animation: video-play-button-orbit 3000ms linear infinite;
+  }
+
+  @keyframes video-play-button-orbit {
+    from {
+      stroke-dashoffset: 0;
+    }
+
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+</style>

@@ -21,6 +21,7 @@
   --space-section: 120px;
   --space-section-mobile: 60px;
   --space-container: 1.5rem;
+  --space-media-container: 1rem;
 
   /* Typography scale */
   --font-display: "Cormorant Garamond", serif;
@@ -89,6 +90,12 @@ img {
   padding-inline: var(--space-container);
 }
 
+.media-shell {
+  margin-inline: auto;
+  width: min(100%, 1680px);
+  padding-inline: var(--space-media-container);
+}
+
 .section-spacing {
   padding-block: var(--space-section-mobile);
 }
@@ -109,5 +116,11 @@ img {
 @media (min-width: 1024px) {
   .section-spacing {
     padding-block: var(--space-section);
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --space-media-container: 1.5rem;
   }
 }
