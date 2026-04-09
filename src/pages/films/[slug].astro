@@ -35,24 +35,18 @@ const mainVideoPoster =
 ---
 
 <BaseLayout title={`${film.title} | Joshua Portfolio`} description={film.logline}>
-  <section class="content-shell section-spacing">
-    <div class="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.75fr)]">
-      <div>
-        <p class="text-sm uppercase tracking-[0.22em] text-accent">{film.type}</p>
-        <h1 class="mt-4 font-display text-5xl leading-none md:text-7xl">{film.title}</h1>
-        <p class="mt-8 max-w-3xl text-base leading-8 text-secondary md:text-lg">{film.logline}</p>
-
-        {film.mainVideo ? (
-          <div class="mt-10">
+  <section class="pt-3 pb-14 md:pt-4 md:pb-20 lg:pt-5 lg:pb-24">
+    <div class="media-shell">
+      <div class="film-hero relative" data-has-video={film.mainVideo ? 'true' : 'false'}>
+        <div class="film-hero-media overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          {film.mainVideo ? (
             <VideoFacade
               client:load
               title={film.title}
               video={film.mainVideo}
               poster={mainVideoPoster!}
             />
-          </div>
-        ) : (
-          <div class="mt-10 overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80">
+          ) : (
             <PortfolioImage
               image={film.coverImage}
               variant="hero"
@@ -60,42 +54,84 @@ const mainVideoPoster =
               class="aspect-video w-full object-cover"
               loading="eager"
             />
-          </div>
-        )}
-
-        <div class="mt-10 space-y-6">
-          {
-            film.body
-              .map(blockToText)
-              .filter(Boolean)
-              .map((paragraph) => (
-                <p class="max-w-3xl text-base leading-8 text-secondary">{paragraph}</p>
-              ))
-          }
+          )}
         </div>
 
+        <div
+          aria-hidden="true"
+          class="film-hero-gradient pointer-events-none absolute inset-x-0 bottom-0 hidden rounded-b-[2rem] bg-gradient-to-t from-black via-black/72 to-transparent md:block"
+          style="height: min(42%, 22rem);"
+        />
+
+        <div class="film-hero-overlay pointer-events-none relative mt-6 transition-all duration-[var(--duration-base)] ease-[var(--easing-film)] md:absolute md:inset-x-0 md:bottom-0 md:z-10 md:mt-0 md:p-4 lg:p-6">
+          <div class="film-hero-overlay-panel md:max-w-2xl md:rounded-[1.35rem] md:border md:border-white/14 md:bg-black/52 md:p-5 md:backdrop-blur-md lg:p-6">
+            <div class="max-w-xl">
+              <p class="text-sm uppercase tracking-[0.22em] text-accent">{film.type}</p>
+              <h1 class="mt-3 font-display text-4xl leading-none md:text-5xl lg:text-[4.1rem]">
+                {film.title}
+              </h1>
+              <p class="mt-3 text-sm leading-6 text-primary/88 md:text-[0.95rem] lg:max-w-lg">
+                {film.logline}
+              </p>
+            </div>
+
+            <dl class="mt-5 grid gap-3 border-t border-white/10 pt-4 text-xs sm:grid-cols-2 lg:grid-cols-[auto_auto_minmax(0,1fr)] lg:gap-x-6">
+              <div>
+                <dt class="uppercase tracking-[0.18em] text-secondary/70">Year</dt>
+                <dd class="mt-1.5 text-sm text-primary md:text-base">{film.year}</dd>
+              </div>
+              {film.runtime && (
+                <div>
+                  <dt class="uppercase tracking-[0.18em] text-secondary/70">Runtime</dt>
+                  <dd class="mt-1.5 text-sm text-primary md:text-base">{film.runtime}</dd>
+                </div>
+              )}
+              <div class="sm:col-span-2 lg:col-span-1">
+                <dt class="uppercase tracking-[0.18em] text-secondary/70">Tags</dt>
+                <dd class="mt-1.5 text-sm leading-6 text-primary md:text-base">{film.tags.join(' / ')}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-shell pb-16 md:pb-20 lg:pb-24">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:gap-12">
+      <div class="space-y-6">
+        {
+          film.body
+            .map(blockToText)
+            .filter(Boolean)
+            .map((paragraph) => (
+              <p class="max-w-3xl text-base leading-8 text-secondary">{paragraph}</p>
+            ))
+        }
       </div>
 
-      <aside class="h-fit rounded-[2rem] border border-white/10 bg-surface/80 p-6 md:p-8">
-        <p class="text-sm uppercase tracking-[0.22em] text-accent">Project Info</p>
-        <dl class="mt-6 space-y-5">
-          <div>
-            <dt class="text-xs uppercase tracking-[0.18em] text-secondary/70">Year</dt>
-            <dd class="mt-2 text-base text-primary">{film.year}</dd>
-          </div>
-          {film.runtime && (
+      <div class="grid gap-6">
+        <aside class="h-fit rounded-[2rem] border border-white/10 bg-surface/80 p-6 md:p-8">
+          <p class="text-sm uppercase tracking-[0.22em] text-accent">Project Info</p>
+          <dl class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
             <div>
-              <dt class="text-xs uppercase tracking-[0.18em] text-secondary/70">Runtime</dt>
-              <dd class="mt-2 text-base text-primary">{film.runtime}</dd>
+              <dt class="text-xs uppercase tracking-[0.18em] text-secondary/70">Year</dt>
+              <dd class="mt-2 text-base text-primary">{film.year}</dd>
             </div>
-          )}
-          <div>
-            <dt class="text-xs uppercase tracking-[0.18em] text-secondary/70">Tags</dt>
-            <dd class="mt-2 text-base leading-7 text-primary">{film.tags.join(' / ')}</dd>
-          </div>
-        </dl>
+            {film.runtime && (
+              <div>
+                <dt class="text-xs uppercase tracking-[0.18em] text-secondary/70">Runtime</dt>
+                <dd class="mt-2 text-base text-primary">{film.runtime}</dd>
+              </div>
+            )}
+            <div class="sm:col-span-2 lg:col-span-1">
+              <dt class="text-xs uppercase tracking-[0.18em] text-secondary/70">Tags</dt>
+              <dd class="mt-2 text-base leading-7 text-primary">{film.tags.join(' / ')}</dd>
+            </div>
+          </dl>
+        </aside>
 
-        <div class="mt-8 border-t border-white/10 pt-8">
+        <aside class="h-fit rounded-[2rem] border border-white/10 bg-surface/80 p-6 md:p-8">
           <p class="text-xs uppercase tracking-[0.18em] text-secondary/70">Credits</p>
           <ul class="mt-4 space-y-4">
             {
@@ -107,8 +143,65 @@ const mainVideoPoster =
               ))
             }
           </ul>
-        </div>
-      </aside>
+        </aside>
+      </div>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  :global(.film-hero-media [data-player-root]) {
+    border: 0;
+    border-radius: 0;
+  }
+
+  :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-overlay),
+  :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-gradient) {
+    opacity: 0;
+    transform: translateY(1rem);
+    pointer-events: none;
+  }
+  
+  :global(.film-hero-gradient),
+  :global(.film-hero-overlay) {
+    transition:
+      opacity var(--duration-base) var(--easing-film),
+      transform var(--duration-base) var(--easing-film);
+  }
+
+  :global(.film-hero-overlay-panel) {
+    transition:
+      border-color var(--duration-base) var(--easing-film),
+      background-color var(--duration-base) var(--easing-film),
+      box-shadow var(--duration-base) var(--easing-film),
+      transform var(--duration-base) var(--easing-film);
+  }
+
+  @media (min-width: 768px) {
+    :global(.film-hero-media) {
+      max-height: calc(100vh - 7.5rem);
+    }
+
+    :global(.film-hero-media [data-player-root]),
+    :global(.film-hero-media [data-player-root] > div),
+    :global(.film-hero-media picture),
+    :global(.film-hero-media img) {
+      height: 100%;
+    }
+
+    :global(.film-hero-media [data-player-root]),
+    :global(.film-hero-media picture) {
+      aspect-ratio: 16 / 9;
+    }
+
+    :global(.film-hero-media [data-player-root] iframe),
+    :global(.film-hero-media [data-player-root] button),
+    :global(.film-hero-media [data-player-root] img),
+    :global(.film-hero-media picture img) {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+    }
+
+  }
+</style>
