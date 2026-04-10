@@ -114,6 +114,8 @@ export const filmType = defineType({
       name: 'mainVideo',
       title: 'Main video',
       type: 'object',
+      description:
+        'YouTube 與 Vimeo 使用嵌入網址。Custom 僅接受 Vidstack 可播放的 MP4 / HLS / DASH 媒體來源。',
       fields: [
         defineField({
           name: 'provider',
@@ -133,7 +135,56 @@ export const filmType = defineType({
           name: 'embedUrl',
           title: 'Embed URL',
           type: 'url',
-          validation: (rule) => rule.required(),
+          description: 'YouTube / Vimeo 使用。舊的 custom 內容過渡期仍會讀取此欄位。',
+          hidden: ({parent}) => parent?.provider === 'custom',
+          validation: (rule) =>
+            rule.custom((value, context) => {
+              const provider = context.parent && typeof context.parent === 'object'
+                ? (context.parent as {provider?: string}).provider
+                : undefined
+
+              if (provider === 'youtube' || provider === 'vimeo') {
+                return typeof value === 'string' && value.length > 0
+                  ? true
+                  : 'YouTube 與 Vimeo 必須提供 Embed URL。'
+              }
+
+              return true
+            }),
+        }),
+        defineField({
+          name: 'src',
+          title: 'Media source URL',
+          type: 'url',
+          description: 'Custom 影片請填可直接播放的 MP4、m3u8 或 mpd 來源網址。',
+          hidden: ({parent}) => parent?.provider !== 'custom',
+          validation: (rule) =>
+            rule.custom((value, context) => {
+              const parent =
+                context.parent && typeof context.parent === 'object'
+                  ? (context.parent as {provider?: string; embedUrl?: string})
+                  : undefined
+
+              if (parent?.provider !== 'custom') {
+                return true
+              }
+
+              if (
+                (typeof value === 'string' && value.length > 0) ||
+                (typeof parent.embedUrl === 'string' && parent.embedUrl.length > 0)
+              ) {
+                return true
+              }
+
+              return 'Custom 影片至少要提供一個可播放的媒體來源 URL。'
+            }),
+        }),
+        defineField({
+          name: 'mimeType',
+          title: 'MIME type',
+          type: 'string',
+          description: '選填，例如 video/mp4、application/x-mpegURL、application/dash+xml。',
+          hidden: ({parent}) => parent?.provider !== 'custom',
         }),
         defineField({
           name: 'watchUrl',

@@ -184,18 +184,22 @@ const mainVideoPoster =
 
     :global(.film-hero-media [data-player-root]),
     :global(.film-hero-media [data-player-root] > div),
+    :global(.film-hero-media [data-player-root] .player-shell),
+    :global(.film-hero-media [data-player-root] media-player),
+    :global(.film-hero-media [data-player-root] media-outlet),
     :global(.film-hero-media picture),
     :global(.film-hero-media img) {
       height: 100%;
     }
 
     :global(.film-hero-media [data-player-root]),
+    :global(.film-hero-media [data-player-root] media-player),
     :global(.film-hero-media picture) {
       aspect-ratio: 16 / 9;
     }
 
-    :global(.film-hero-media [data-player-root] iframe),
-    :global(.film-hero-media [data-player-root] button),
+    :global(.film-hero-media [data-player-root] media-outlet),
+    :global(.film-hero-media [data-player-root] media-poster),
     :global(.film-hero-media [data-player-root] img),
     :global(.film-hero-media picture img) {
       height: 100%;

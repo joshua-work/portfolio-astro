@@ -19,9 +19,11 @@ export type SanityImage = {
 
 export type VideoProvider = 'youtube' | 'vimeo' | 'custom';
 
-export type FilmVideoEmbed = {
+export type FilmVideoSource = {
   provider: VideoProvider;
-  embedUrl: string;
+  src?: string;
+  mimeType?: string;
+  embedUrl?: string;
   watchUrl?: string;
   title?: string;
   poster?: SanityImage;
@@ -54,7 +56,7 @@ export type FilmSummary = {
 
 export type Film = FilmSummary & {
   runtime?: string;
-  mainVideo?: FilmVideoEmbed;
+  mainVideo?: FilmVideoSource;
   stills: SanityImage[];
   credits: CreditItem[];
   body: PortableTextBlock[];
