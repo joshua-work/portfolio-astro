@@ -57,6 +57,7 @@ There are two separate publish paths and agents should keep them distinct:
 |---|---|---|
 | Site framework | Astro | Static site generation, routing, build orchestration |
 | Interactivity | Svelte 5 | Islands of interactivity, animations, state management |
+| Video Player | Vidstack | Accessible, performant, and customizable media player (Web Components) |
 | Headless UI | Bits UI | Accessible component primitives (unstyled) |
 | Styling | Tailwind CSS v4 + CSS Variables | Utility classes + design token system |
 | CMS | Sanity | Content management, image CDN, Portable Text |
@@ -359,6 +360,33 @@ When building new features, follow this sequence:
 7. Verify responsive behavior on mobile, tablet, and desktop
 8. Run `npm run check` and `npm run build`
 9. Commit one focused change at a time
+
+---
+
+## Vidstack Video Player Guidelines
+
+When implementing video facades with Vidstack's lazy loading (`load="play"`), adhere to the following structure to ensure the poster image displays correctly and prevents black screens:
+
+- **`view-type` attribute**: Always explicitly set `view-type="video"` on the `<media-player>`. This prevents the player from entering an unknown state before the lazy-loaded media initializes.
+- **`poster-load` attribute**: Set `poster-load="eager"` on `<media-player>` so the poster image loads immediately, independently of the delayed media.
+- **`<media-poster>` Placement**: The `<media-poster>` component MUST be nested **inside** the `<media-provider>` component. This is required for the poster to render correctly within the Vidstack context.
+- **No Duplicate `src`**: Do not add a `src` attribute to `<media-poster>`. It automatically inherits the `poster` URL provided to the parent `<media-player>`.
+- **Default Layout Limits**: The `<media-video-layout>` component handles controls but does NOT include a poster, making the explicit `<media-poster>` necessary.
+
+### Example Vidstack Structure:
+```svelte
+<media-player 
+  view-type="video" 
+  load="play" 
+  poster-load="eager" 
+  poster={posterUrl}
+>
+  <media-provider>
+    <media-poster alt="..."></media-poster>
+  </media-provider>
+  <media-video-layout></media-video-layout>
+</media-player>
+```
 
 ---
 

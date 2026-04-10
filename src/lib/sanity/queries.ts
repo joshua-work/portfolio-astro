@@ -44,6 +44,8 @@ export const filmDetailProjection = `
   },
   mainVideo{
     provider,
+    src,
+    mimeType,
     embedUrl,
     watchUrl,
     title,
