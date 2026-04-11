@@ -218,6 +218,7 @@
   data-player-root
   data-provider={video.provider}
   data-state={playerState}
+  role="application"
   onmouseenter={preloadScripts}
 >
   {#if resolvedSource.kind === 'player'}
@@ -381,14 +382,6 @@
 </div>
 
 <style>
-  .player-fallback {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    transform: scale(1.04);
-    filter: blur(0);
-  }
-
   .vidstack-player {
     --video-border: 0;
     --video-border-radius: 0;
