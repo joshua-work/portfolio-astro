@@ -11,6 +11,11 @@
 
   let { settings, currentPath = '/' }: Props = $props();
   let isMenuOpen = $state(false);
+  let currentScrollY = $state(0);
+  let isHidden = $state(false);
+  let lastScrollY = 0;
+  let scrollDownDistance = 0;
+  let scrollUpDistance = 0;
 
   const links: NavItem[] = settings.primaryNav;
 
@@ -27,10 +32,56 @@
       }
     }
   });
+
+  $effect(() => {
+    // Scroll handling for smart sticky header
+    const delta = currentScrollY - lastScrollY;
+    
+    if (delta > 0) {
+      // Scrolling down
+      scrollDownDistance += delta;
+      scrollUpDistance = 0; // Reset up distance
+      
+      // Hide if scrolled down continuously for > 100px and we are past the top 100px
+      if (scrollDownDistance > 500 && currentScrollY > 100) {
+        isHidden = true;
+      }
+    } else if (delta < 0) {
+      // Scrolling up
+      scrollUpDistance += Math.abs(delta);
+      scrollDownDistance = 0; // Reset down distance
+      
+      // Show if scrolled up continuously for > 10px (deadzone to prevent jitter)
+      if (scrollUpDistance > 300) {
+        isHidden = false;
+      }
+    }
+    
+    // Always show if near top
+    if (currentScrollY <= 100) {
+      isHidden = false;
+    }
+    
+    // Always show if menu is open
+    if (isMenuOpen) {
+      isHidden = false;
+    }
+    
+    lastScrollY = currentScrollY;
+  });
 </script>
 
-<div class="flex items-center justify-between w-full">
-  <!-- Logo -->
+<svelte:window bind:scrollY={currentScrollY} />
+
+<!-- Spacer div to prevent content layout shift since header is now fixed -->
+<div class="h-16 w-full">
+  <header 
+    class="fixed top-0 z-20 w-full border-b border-white/10 bg-background/90 backdrop-blur-md transition-transform duration-300 ease-[var(--easing-film)] {isHidden ? '-translate-y-full' : 'translate-y-0'}"
+    style="view-transition-name: header"
+  >
+    <div class="content-shell flex min-h-16 items-center">
+    <div class="flex items-center justify-between w-full">
+      <!-- Logo -->
   <a
     href="/"
     class="focus-ring inline-flex min-h-11 items-center font-display text-2xl tracking-[0.08em] text-primary z-50"
@@ -140,7 +191,10 @@
         {/snippet}
       </Dialog.Content>
     </Dialog.Portal>
-  </Dialog.Root>
+      </Dialog.Root>
+    </div>
+  </div>
+</header>
 </div>
 
 <style>
