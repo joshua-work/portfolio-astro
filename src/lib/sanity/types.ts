@@ -78,7 +78,6 @@ export type HomePage = {
   intro: string;
   focusAreas: string[];
   featuredSlugs: string[];
-  closingNote: string;
 };
 
 export type AboutPage = {

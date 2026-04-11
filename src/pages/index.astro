@@ -34,10 +34,4 @@ const [homePage, films] = await Promise.all([getHomePage(), getFilmSummaries()])
   </section>
 
   <FilmGrid films={films} />
-
-  <section class="content-shell pb-[var(--space-section-mobile)] lg:pb-[var(--space-section)]">
-    <div class="rounded-[2rem] border border-white/10 bg-background/40 px-6 py-8 md:px-8">
-      <p class="max-w-3xl text-sm leading-7 text-secondary">{homePage.closingNote}</p>
-    </div>
-  </section>
 </BaseLayout>
