@@ -185,13 +185,13 @@
 </script>
 
 <div
-  class="relative z-10 overflow-hidden rounded-[2rem] border border-white/10 bg-surface isolate"
+  class="relative z-10 h-full w-full overflow-hidden isolate"
   data-player-root
   data-provider={video.provider}
   data-state={playerState}
 >
   {#if resolvedSource.kind === 'player'}
-    <div class="player-shell relative aspect-video w-full bg-background">
+    <div class="player-shell relative h-full w-full bg-background">
       <media-player
         bind:this={playerEl}
         class="vidstack-player block h-full w-full"
@@ -297,8 +297,7 @@
       </media-player>
     </div>
   {:else}
-    <div class="relative aspect-video w-full bg-background">
-      <div aria-hidden="true" class="player-fallback absolute inset-0" style={backgroundImage}></div>
+    <div class="relative h-full w-full bg-background">
       <div
         aria-hidden="true"
         class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,110,0.18),transparent_42%)]"

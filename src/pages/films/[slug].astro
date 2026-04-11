@@ -40,8 +40,14 @@ const mainVideoPoster =
       <div class="film-hero relative" data-has-video={film.mainVideo ? 'true' : 'false'}>
         <div 
           class="film-hero-media relative aspect-video overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80 shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
-          style={mainVideoPoster?.lqip ? `background-image: url(${mainVideoPoster.lqip}); background-size: cover; background-position: center;` : ''}
         >
+          {mainVideoPoster?.lqip && (
+            <div 
+              class="absolute inset-0 z-0 pointer-events-none transition-opacity duration-700"
+              style={`background-image: url(${mainVideoPoster.lqip}); background-size: cover; background-position: center; filter: blur(4px); transform: scale(1.05);`}
+              aria-hidden="true"
+            />
+          )}
           {film.mainVideo ? (
             <VideoFacade
               client:only="svelte"
@@ -54,7 +60,7 @@ const mainVideoPoster =
               image={film.coverImage}
               variant="hero"
               alt={film.title}
-              class="h-full w-full object-cover"
+              class="h-full w-full object-cover relative z-10"
               loading="eager"
             />
           )}
@@ -67,7 +73,7 @@ const mainVideoPoster =
         />
 
         <div class="film-hero-overlay pointer-events-none relative mt-6 transition-all ease-[var(--easing-film)] md:absolute md:inset-x-0 md:bottom-0 md:z-30 md:mt-0 md:p-4 lg:p-6">
-          <div class="film-hero-overlay-panel md:max-w-2xl md:rounded-[1.35rem] md:border md:border-white/14 md:bg-black/52 md:p-5 md:backdrop-blur-md lg:p-6">
+          <div class="film-hero-overlay-panel md:max-w-2xl md:rounded-[1.35rem] md:border md:border-white/14 md:bg-black/52 md:p-5 lg:p-6">
             <div class="max-w-xl">
               <p class="text-sm uppercase tracking-[0.22em] text-accent">{film.type}</p>
               <h1 class="mt-3 font-display text-4xl leading-none md:text-5xl lg:text-[4.1rem]">
@@ -159,27 +165,25 @@ const mainVideoPoster =
   }
 
   @media (min-width: 768px) {
-    :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-overlay),
+    :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-overlay-panel),
     :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-gradient) {
       opacity: 0;
       transform: translateY(1rem);
       pointer-events: none;
     }
   }
-  
-  :global(.film-hero-gradient),
-  :global(.film-hero-overlay) {
-    transition:
-      opacity var(--duration-slow) var(--easing-film),
-      transform var(--duration-slow) var(--easing-film);
-  }
 
   :global(.film-hero-overlay-panel) {
+    /* Fixed blur intensity - never animate this value to avoid "jumps" */
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    will-change: opacity, transform;
+
     transition:
-      border-color var(--duration-base) var(--easing-film),
-      background-color var(--duration-base) var(--easing-film),
-      box-shadow var(--duration-base) var(--easing-film),
-      transform var(--duration-base) var(--easing-film);
+      opacity var(--duration-slow) var(--easing-film),
+      transform var(--duration-slow) var(--easing-film),
+      border-color var(--duration-slow) var(--easing-film),
+      box-shadow var(--duration-slow) var(--easing-film);
   }
 
   @media (min-width: 768px) {
