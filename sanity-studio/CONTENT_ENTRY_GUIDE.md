@@ -23,7 +23,7 @@
   - `/` / `Work`
   - `/about` / `About`
   - `/contact` / `Contact`
-- `footerNote`: `Static-first portfolio prototype with legacy content migrated from the previous WordPress build.`
+- `footerNote`: `Joshua Yue is a filmmaker working across documentary, cultural commissions, and brand storytelling.`
 - `contactEmail`: 先填你要公開的信箱
 - `socialLinks`
   - `YouTube`
@@ -38,7 +38,7 @@
 
 - `eyebrow`: `Selected Work`
 - `title`: `Moving-image work across cultural commissions, documentary texture, and brand storytelling.`
-- `intro`: `This first Astro build brings the legacy portfolio into a cleaner static-first structure while keeping the project archive easy to browse and ready for Sanity-backed editing later.`
+- `intro`: `Selected films and cinematic projects focusing on place, texture, and editorial rhythm.`
 - `focusAreas`
   - `Documentary`
   - `Commercial`
@@ -47,7 +47,6 @@
 - `featuredSlugs`
   - 先填你已經建立好的 film slug
   - 建議先放 3 到 6 筆
-- `closingNote`: `For this testing phase, legacy media is kept local inside the repo so the site remains buildable before Sanity asset delivery is finalized.`
 
 ---
 
@@ -55,15 +54,15 @@
 
 - `eyebrow`: `About`
 - `title`: `Joshua Yue builds films that stay attentive to place, texture, and editorial rhythm.`
-- `intro`: `The original WordPress portfolio was centered on the work itself. This rebuilt version keeps that focus, but adds structure for biography, contact, and future CMS-managed updates.`
+- `intro`: `Focused on cinematic documentary and commissioned moving-image work.`
 - `bio`
   - `Joshua Yue is a filmmaker working across documentary, cultural commissions, exhibition media, and brand storytelling.`
-  - `The current site rebuild prioritizes clarity: each project is presented as a durable film entry with roles, media, and context, instead of living as a one-off WordPress page.`
-  - `As the project grows, the same structure can expand into Sanity-managed copy, richer still galleries, and better editorial sequencing without changing the frontend architecture.`
+  - `Each project is presented as a durable film entry with roles, media, and context, allowing for a deep understanding of the creative process.`
+  - `The portfolio architecture supports rich still galleries and high-fidelity video delivery managed through Sanity CMS.`
 - `highlights`
   - `Static-first Astro routing with deferred islands only where interaction matters`
   - `Sanity-ready content models for site settings, homepage, about, contact, and film entries`
-  - `Legacy media preserved locally for testing while keeping a clean path to future CDN-backed delivery`
+  - `CDN-backed image and video delivery via Sanity and modern player facades`
 
 ---
 

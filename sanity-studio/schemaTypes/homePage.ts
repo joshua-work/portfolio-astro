@@ -38,11 +38,5 @@ export const homePageType = defineType({
       of: [{type: 'string'}],
       description: 'These should match the slug value of film documents.',
     }),
-    defineField({
-      name: 'closingNote',
-      title: 'Closing note',
-      type: 'text',
-      rows: 3,
-    }),
   ],
 })

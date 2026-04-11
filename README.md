@@ -62,5 +62,4 @@ npm run dev
 ## Notes
 
 - This repo keeps the website and the Sanity Studio in the same project folder.
-- `legacy-portfolio/` is intentionally excluded from Git tracking.
 - `.env` is ignored and should not be committed.

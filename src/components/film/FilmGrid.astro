@@ -26,6 +26,7 @@ const sectionId = 'film-grid';
             class="group overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80"
             data-film-card
             data-film-index={index}
+            hidden={index >= initialVisibleCount}
           >
             <a href={`/films/${film.slug}/`} class="block focus-ring">
               <div class="overflow-hidden">
@@ -34,6 +35,8 @@ const sectionId = 'film-grid';
                   variant="card"
                   class="aspect-[4/3] w-full object-cover transition-transform duration-[var(--duration-slow)] ease-[var(--easing-film)] group-hover:scale-[1.03]"
                   alt={film.title}
+                  loading={index < 2 ? 'eager' : 'lazy'}
+                  fetchpriority={index < 2 ? 'high' : 'auto'}
                 />
               </div>
               <div class="flex flex-col gap-4 p-6">
@@ -221,6 +224,10 @@ const sectionId = 'film-grid';
 </script>
 
 <style>
+  [data-film-card][hidden] {
+    display: none !important;
+  }
+
   [data-film-card] {
     opacity: 1;
     transform: translate3d(0, 0, 0);

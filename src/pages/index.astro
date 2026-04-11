@@ -9,10 +9,10 @@ const [homePage, films] = await Promise.all([getHomePage(), getFilmSummaries()])
 
 <BaseLayout title="Joshua Portfolio">
   <section class="content-shell section-spacing">
-    <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-surface/70 px-6 py-12 md:px-10 md:py-16">
+    <div class="relative max-w-full overflow-hidden rounded-[2rem] border border-white/10 bg-surface/70 px-6 py-12 md:px-10 md:py-16">
       <div class="relative z-10 max-w-4xl">
         <p class="text-sm uppercase tracking-[0.24em] text-accent">{homePage.eyebrow}</p>
-        <h1 class="mt-5 font-display text-5xl leading-none text-primary md:text-7xl">
+        <h1 class="mt-5 break-words font-display text-5xl leading-none text-primary md:text-7xl lg:text-balance">
           {homePage.title}
         </h1>
         <p class="mt-8 max-w-2xl text-base leading-8 text-secondary md:text-lg">
@@ -34,10 +34,4 @@ const [homePage, films] = await Promise.all([getHomePage(), getFilmSummaries()])
   </section>
 
   <FilmGrid films={films} />
-
-  <section class="content-shell pb-[var(--space-section-mobile)] lg:pb-[var(--space-section)]">
-    <div class="rounded-[2rem] border border-white/10 bg-background/40 px-6 py-8 md:px-8">
-      <p class="max-w-3xl text-sm leading-7 text-secondary">{homePage.closingNote}</p>
-    </div>
-  </section>
 </BaseLayout>

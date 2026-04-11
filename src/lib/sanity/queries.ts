@@ -105,8 +105,7 @@ export const homePageQuery = `*[_type == "homePage"][0] {
   title,
   intro,
   focusAreas,
-  featuredSlugs,
-  closingNote
+  featuredSlugs
 }`;
 
 export const aboutPageQuery = `*[_type == "aboutPage"][0] {
