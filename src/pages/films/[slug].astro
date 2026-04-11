@@ -41,7 +41,7 @@ const mainVideoPoster =
         <div class="film-hero-media overflow-hidden rounded-[2rem] border border-white/10 bg-surface/80 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
           {film.mainVideo ? (
             <VideoFacade
-              client:load
+              client:only="svelte"
               title={film.title}
               video={film.mainVideo}
               poster={mainVideoPoster!}

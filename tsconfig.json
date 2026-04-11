@@ -1,14 +1,14 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "baseUrl": ".",
+    "moduleResolution": "bundler",
     "types": [
       "astro/client",
       "vidstack/svelte"
     ],
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     }
   }
