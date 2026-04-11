@@ -10,7 +10,7 @@ type Props = {
 const { settings, currentPath = '/' } = Astro.props;
 ---
 
-<header class="sticky top-0 z-20 border-b border-white/10 bg-background/90 backdrop-blur-md">
+<header class="sticky top-0 z-20 border-b border-white/10 bg-background/90 backdrop-blur-md" transition:name="header">
   <div class="content-shell flex min-h-16 items-center">
     <Navigation client:load settings={settings} currentPath={currentPath} />
   </div>

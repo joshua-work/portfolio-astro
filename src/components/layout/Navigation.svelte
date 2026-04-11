@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
+  import { Dialog, NavigationMenu } from 'bits-ui';
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import type { NavItem, SiteSettings } from '@/lib/sanity/types';
@@ -35,21 +35,22 @@
   </a>
 
   <!-- Desktop Navigation -->
-  <nav aria-label="Primary navigation" class="hidden md:block">
-    <ul class="flex items-center gap-2 md:gap-4">
+  <NavigationMenu.Root aria-label="Primary navigation" class="hidden md:block">
+    <NavigationMenu.List class="flex items-center gap-2 md:gap-4">
       {#each links as link}
-        <li>
-          <a
+        <NavigationMenu.Item>
+          <NavigationMenu.Link
             href={link.href}
+            active={currentPath === link.href}
             aria-current={currentPath === link.href ? 'page' : undefined}
             class="focus-ring inline-flex min-h-11 items-center rounded-full px-4 text-sm uppercase tracking-[0.22em] transition-colors duration-300 ease-[var(--easing-film)] {currentPath === link.href ? 'bg-white/6 text-accent' : 'text-secondary hover:text-accent'}"
           >
             {link.label}
-          </a>
-        </li>
+          </NavigationMenu.Link>
+        </NavigationMenu.Item>
       {/each}
-    </ul>
-  </nav>
+    </NavigationMenu.List>
+  </NavigationMenu.Root>
 
   <!-- Mobile Navigation Trigger -->
   <Dialog.Root bind:open={isMenuOpen} preventScroll={true}>
