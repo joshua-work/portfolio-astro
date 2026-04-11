@@ -2,6 +2,7 @@ import { sanityClient, isSanityConfigured } from '@/lib/sanity/client';
 import {
   aboutPageQuery,
   allFilmsQuery,
+  allTagsQuery,
   contactPageQuery,
   filmBySlugQuery,
   homePageQuery,
@@ -14,6 +15,7 @@ import type {
   FilmSummary,
   HomePage,
   SiteSettings,
+  Tag,
 } from '@/lib/sanity/types';
 
 function normalizeFilm(film: Film): Film {
@@ -113,4 +115,9 @@ export async function getFilmBySlug(slug: string): Promise<Film> {
   );
 
   return normalizeFilm(film);
+}
+
+export async function getAllTags(): Promise<string[]> {
+  const tags = await fetchRequired<Tag[]>(allTagsQuery, 'No tags found in Sanity.');
+  return tags.map((t) => t.title);
 }
