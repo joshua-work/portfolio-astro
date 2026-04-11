@@ -14,6 +14,10 @@
 
   const links: NavItem[] = settings.primaryNav;
 
+  // Normalize paths to handle trailing slashes consistently
+  const normalizePath = (p: string) => p.replace(/\/$/, '') || '/';
+  const isActive = (href: string) => normalizePath(currentPath) === normalizePath(href);
+
   $effect(() => {
     if (typeof window !== 'undefined') {
       if (isMenuOpen) {
@@ -41,9 +45,9 @@
         <NavigationMenu.Item>
           <NavigationMenu.Link
             href={link.href}
-            active={currentPath === link.href}
-            aria-current={currentPath === link.href ? 'page' : undefined}
-            class="focus-ring inline-flex min-h-11 items-center rounded-full px-4 text-sm uppercase tracking-[0.22em] transition-colors duration-300 ease-[var(--easing-film)] {currentPath === link.href ? 'bg-white/6 text-accent' : 'text-secondary hover:text-accent'}"
+            active={isActive(link.href)}
+            aria-current={isActive(link.href) ? 'page' : undefined}
+            class="focus-ring inline-flex min-h-11 items-center rounded-full px-4 text-sm uppercase tracking-[0.22em] transition-colors duration-300 ease-[var(--easing-film)] {isActive(link.href) ? 'bg-white/6 text-accent' : 'text-secondary hover:text-accent'}"
           >
             {link.label}
           </NavigationMenu.Link>
@@ -117,10 +121,10 @@
                       <a
                         href={link.href}
                         onclick={() => (isMenuOpen = false)}
-                        class="group flex flex-col items-center gap-2 font-display text-4xl tracking-widest transition-all duration-300 {currentPath === link.href ? 'text-accent' : 'text-primary hover:text-accent'}"
+                        class="group flex flex-col items-center gap-2 font-display text-4xl tracking-widest transition-all duration-300 {isActive(link.href) ? 'text-accent' : 'text-primary hover:text-accent'}"
                       >
                         {link.label}
-                        <span class="h-px w-0 bg-accent transition-all duration-300 group-hover:w-full {currentPath === link.href ? 'w-full' : ''}"></span>
+                        <span class="h-px w-0 bg-accent transition-all duration-300 group-hover:w-full {isActive(link.href) ? 'w-full' : ''}"></span>
                       </a>
                     </li>
                   {/each}
