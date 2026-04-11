@@ -185,7 +185,7 @@
 </script>
 
 <div
-  class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-surface"
+  class="relative z-10 overflow-hidden rounded-[2rem] border border-white/10 bg-surface isolate"
   data-player-root
   data-provider={video.provider}
   data-state={playerState}
