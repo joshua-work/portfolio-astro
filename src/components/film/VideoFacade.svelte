@@ -214,8 +214,8 @@
           <media-gesture event="dblclick" action={"toggle:fullscreen" as any}></media-gesture>
         </media-provider>
 
-        <!-- Play/Pause Center Indicator -->
-        <div class="media-indicator-container pointer-events-none absolute inset-0 z-50 flex items-center justify-center">
+        <!-- Play/Pause Center Indicator (Desktop Only) -->
+        <div class="media-indicator-container pointer-events-none absolute inset-0 z-50 hidden items-center justify-center md:flex">
           <div class="media-indicator">
             <div class="media-indicator-icon play-icon">
               <svg viewBox="0 0 32 32">{@html playIcon}</svg>
@@ -226,11 +226,11 @@
           </div>
         </div>
 
-        <!-- Replay Overlay -->
+        <!-- Replay Overlay (Desktop Only) -->
         {#if playerEnded}
           <div
             transition:fade={{ duration: 400 }}
-            class="replay-overlay group absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/32 backdrop-blur-[2px]"
+            class="replay-overlay group absolute inset-0 z-20 hidden cursor-pointer items-center justify-center bg-black/32 backdrop-blur-[2px] md:flex"
             role="button"
             tabindex="0"
             aria-label="Replay video"

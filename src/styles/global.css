@@ -55,6 +55,7 @@ html {
   color: var(--color-text-primary);
   font-family: var(--font-body);
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -66,6 +67,7 @@ body {
     linear-gradient(180deg, rgb(20 20 20 / 0.96), rgb(10 10 10 / 1));
   color: var(--color-text-primary);
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 main {

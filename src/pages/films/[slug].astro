@@ -155,11 +155,13 @@ const mainVideoPoster =
     border-radius: 0;
   }
 
-  :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-overlay),
-  :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-gradient) {
-    opacity: 0;
-    transform: translateY(1rem);
-    pointer-events: none;
+  @media (min-width: 768px) {
+    :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-overlay),
+    :global(.film-hero[data-has-video='true']:has([data-player-root][data-state='playing']) .film-hero-gradient) {
+      opacity: 0;
+      transform: translateY(1rem);
+      pointer-events: none;
+    }
   }
   
   :global(.film-hero-gradient),
