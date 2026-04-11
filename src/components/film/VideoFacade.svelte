@@ -213,7 +213,8 @@
 </script>
 
 <div
-  class="relative z-10 h-full w-full overflow-hidden isolate"
+  class="relative z-10 h-full w-full overflow-hidden isolate group"
+  class:is-loading={isPlayerActive && !playerStarted}
   data-player-root
   data-provider={video.provider}
   data-state={playerState}
@@ -224,7 +225,7 @@
       {#if !isPlayerActive}
         <button
           type="button"
-          class="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center overflow-hidden border-0 bg-transparent p-0 group"
+          class="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center overflow-hidden border-0 bg-transparent p-0"
           onclick={loadAndPlay}
           aria-label="Play video"
         >
@@ -277,7 +278,7 @@
         {#if playerEnded}
           <div
             transition:fade={{ duration: 400 }}
-            class="replay-overlay group absolute inset-0 z-20 hidden cursor-pointer items-center justify-center bg-black/32 backdrop-blur-[2px] md:flex"
+            class="replay-overlay group/replay absolute inset-0 z-20 hidden cursor-pointer items-center justify-center bg-black/32 backdrop-blur-[2px] md:flex"
             role="button"
             tabindex="0"
             aria-label="Replay video"
@@ -319,12 +320,12 @@
               class="flex flex-col items-center gap-4 focus-ring"
               aria-label="Replay video"
             >
-              <div class="flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all duration-300 group-hover:scale-110 group-hover:border-accent group-hover:bg-accent group-hover:text-black">
+              <div class="flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all duration-300 group-hover/replay:scale-110 group-hover/replay:border-accent group-hover/replay:bg-accent group-hover/replay:text-black">
                 <div class="h-10 w-10">
                   <svg viewBox="0 0 32 32">{@html replayIcon}</svg>
                 </div>
               </div>
-              <span class="text-sm font-medium uppercase tracking-[0.25em] text-white opacity-80 group-hover:opacity-100">
+              <span class="text-sm font-medium uppercase tracking-[0.25em] text-white opacity-80 group-hover/replay:opacity-100">
                 Replay
               </span>
             </button>
@@ -431,24 +432,35 @@
   }
 
   .custom-poster-overlay {
-    will-change: opacity, transform, scale;
+    will-change: opacity, transform;
     transform: scale(1);
-    scale: 1;
-    transition: all var(--duration-slow) var(--easing-film);
+    transition: 
+      transform var(--duration-slow) var(--easing-film), 
+      opacity var(--duration-slow) var(--easing-film);
   }
 
   .custom-play-button {
     transform: scale(1);
-    scale: 1;
-    transition: all var(--duration-base) var(--easing-film);
+    transition: 
+      transform var(--duration-base) var(--easing-film),
+      background-color var(--duration-base) var(--easing-film),
+      color var(--duration-base) var(--easing-film),
+      border-color var(--duration-base) var(--easing-film);
   }
 
+  /* Hover 狀態 */
   .group:hover .custom-poster-overlay {
-    scale: 1.05;
+    transform: scale(1.05);
+  }
+
+  /* 關鍵：點擊後進入 Loading 狀態或開始播放前，強制維持放大狀態 */
+  :global(.is-loading) .custom-poster-overlay,
+  .vidstack-player:not(.is-started) .custom-poster-overlay {
+    transform: scale(1.05);
   }
 
   .group:hover .custom-play-button {
-    scale: 1.1;
+    transform: scale(1.1);
     border-color: var(--color-accent);
     background-color: var(--color-accent);
     color: var(--color-bg-base);
@@ -546,10 +558,6 @@
   /* 影片播放前的 Hover 效果 (只在尚未播放時生效) */
   .vidstack-player:not(.is-started) {
     cursor: pointer;
-  }
-
-  .vidstack-player:not(.is-started):hover .custom-poster-overlay {
-    transform: scale(1.05);
   }
 
   .vidstack-player:not(.is-started) :global(.vds-play-button) {
