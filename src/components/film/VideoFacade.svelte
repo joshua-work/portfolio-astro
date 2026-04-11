@@ -157,7 +157,7 @@
         playerSrc: {
           src: candidateUrl,
           type: mimeType,
-        },
+        } as MediaSrc,
         watchUrl,
       };
     }
