@@ -1,7 +1,4 @@
 <script lang="ts">
-  import 'vidstack/player';
-  import 'vidstack/player/layouts/default';
-  import 'vidstack/player/ui';
   import playIcon from 'media-icons/dist/icons/play.js';
   import pauseIcon from 'media-icons/dist/icons/pause.js';
   import replayIcon from 'media-icons/dist/icons/replay.js';
@@ -36,6 +33,37 @@
   let playerStarted = $state(false);
   let playerEnded = $state(false);
   let playIndicatorEnabled = $state(false);
+
+  let isPlayerActive = $state(false);
+  let isPlayerLoading = $state(false);
+  let areScriptsLoaded = false;
+
+  async function preloadScripts() {
+    if (areScriptsLoaded || isPlayerLoading) return;
+    isPlayerLoading = true;
+    
+    try {
+      await import('vidstack/player');
+      await import('vidstack/player/layouts/default');
+      await import('vidstack/player/ui');
+      areScriptsLoaded = true;
+    } catch (error) {
+      console.error("Failed to preload video player:", error);
+    } finally {
+      isPlayerLoading = false;
+    }
+  }
+
+  function loadAndPlay() {
+    if (isPlayerActive) return;
+    
+    // 如果尚未預載完成，則在此載入
+    if (!areScriptsLoaded) {
+      preloadScripts();
+    }
+    
+    isPlayerActive = true;
+  }
 
   $effect(() => {
     if (!playerEl) return;
@@ -189,9 +217,32 @@
   data-player-root
   data-provider={video.provider}
   data-state={playerState}
+  onmouseenter={preloadScripts}
 >
   {#if resolvedSource.kind === 'player'}
     <div class="player-shell relative h-full w-full bg-background">
+      {#if !isPlayerActive}
+        <button
+          type="button"
+          class="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center overflow-hidden border-0 bg-transparent p-0 group"
+          onclick={loadAndPlay}
+          aria-label="Play video"
+        >
+          <!-- 縮圖背景 -->
+          <div
+            class="custom-poster-overlay absolute inset-0 z-0"
+            style="background-image: url({poster.src}); background-size: cover; background-position: center;"
+            aria-hidden="true"
+          ></div>
+          
+          <!-- 初始可見的播放按鈕 -->
+          <div class="custom-play-button relative z-10 flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md">
+            <div class="h-10 w-10">
+              <svg viewBox="0 0 32 32" class="fill-current">{@html playIcon}</svg>
+            </div>
+          </div>
+        </button>
+      {:else}
       <media-player
         bind:this={playerEl}
         class="vidstack-player block h-full w-full"
@@ -199,15 +250,11 @@
         src={resolvedSource.playerSrc}
         title={playerTitle}
         viewType="video"
-        load="play"
+        load="eager"
+        autoplay
         posterLoad="eager"
         playsinline
         data-allow-play-indicator={playIndicatorEnabled}
-        onclick={() => {
-          if (!playerStarted && playerEl && 'play' in playerEl) {
-            (playerEl as any).play();
-          }
-        }}
       >
         <media-provider>
           <media-gesture event="click" action={"toggle:play" as any}></media-gesture>
@@ -286,7 +333,7 @@
 
         <!-- 手動管理的 Poster 遮罩，確保在 YouTube 載入時不會閃黑畫面 -->
         <div
-          class="custom-poster-overlay absolute inset-0 z-[1] pointer-events-none transition-opacity {playerStarted
+          class="custom-poster-overlay absolute inset-0 z-[1] pointer-events-none {playerStarted
             ? 'opacity-0'
             : 'opacity-100'}"
           style="background-image: url({poster.src}); background-size: cover; background-position: center;"
@@ -295,6 +342,7 @@
 
         <media-video-layout></media-video-layout>
       </media-player>
+      {/if}
     </div>
   {:else}
     <div class="relative h-full w-full bg-background">
@@ -383,10 +431,27 @@
   }
 
   .custom-poster-overlay {
-    will-change: opacity, transform;
-    transition:
-      transform var(--duration-slow) var(--easing-film),
-      opacity var(--duration-slow) var(--easing-film);
+    will-change: opacity, transform, scale;
+    transform: scale(1);
+    scale: 1;
+    transition: all var(--duration-slow) var(--easing-film);
+  }
+
+  .custom-play-button {
+    transform: scale(1);
+    scale: 1;
+    transition: all var(--duration-base) var(--easing-film);
+  }
+
+  .group:hover .custom-poster-overlay {
+    scale: 1.05;
+  }
+
+  .group:hover .custom-play-button {
+    scale: 1.1;
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
+    color: var(--color-bg-base);
   }
 
   .vidstack-player :global(.vds-video-layout .vds-controls[data-visible]) {
