@@ -63,7 +63,7 @@ const mainVideoPoster =
           style="height: min(42%, 22rem);"
         />
 
-        <div class="film-hero-overlay pointer-events-none relative mt-6 transition-all duration-[var(--duration-base)] ease-[var(--easing-film)] md:absolute md:inset-x-0 md:bottom-0 md:z-10 md:mt-0 md:p-4 lg:p-6">
+        <div class="film-hero-overlay pointer-events-none relative mt-6 transition-all ease-[var(--easing-film)] md:absolute md:inset-x-0 md:bottom-0 md:z-30 md:mt-0 md:p-4 lg:p-6">
           <div class="film-hero-overlay-panel md:max-w-2xl md:rounded-[1.35rem] md:border md:border-white/14 md:bg-black/52 md:p-5 md:backdrop-blur-md lg:p-6">
             <div class="max-w-xl">
               <p class="text-sm uppercase tracking-[0.22em] text-accent">{film.type}</p>
@@ -165,8 +165,8 @@ const mainVideoPoster =
   :global(.film-hero-gradient),
   :global(.film-hero-overlay) {
     transition:
-      opacity var(--duration-base) var(--easing-film),
-      transform var(--duration-base) var(--easing-film);
+      opacity var(--duration-slow) var(--easing-film),
+      transform var(--duration-slow) var(--easing-film);
   }
 
   :global(.film-hero-overlay-panel) {

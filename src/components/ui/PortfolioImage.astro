@@ -1,7 +1,5 @@
 ---
-import { Image } from 'astro:assets';
-
-import { buildImageUrl } from '@/lib/sanity/image';
+import { buildImageUrl, resolveImageSource } from '@/lib/sanity/image';
 import { imagePresets, type ImagePresetName } from '@/lib/sanity/image-presets';
 import type { SanityImage } from '@/lib/sanity/types';
 
@@ -35,25 +33,29 @@ if (!resolvedWidth) {
   throw new Error('PortfolioImage requires either a width or a variant.');
 }
 
-const sourceWidth = image.asset.metadata.dimensions.width;
-const sourceHeight = image.asset.metadata.dimensions.height;
-const height = Math.round(resolvedWidth * (sourceHeight / sourceWidth));
-const candidateWidths = (widths ?? preset?.widths)?.filter((candidateWidth) => candidateWidth <= sourceWidth);
-const resolvedWidths =
-  candidateWidths && candidateWidths.length > 0
-    ? Array.from(new Set([...candidateWidths, resolvedWidth])).sort((left, right) => left - right)
-    : undefined;
-const resolvedSizes = sizes ?? preset?.sizes;
+const source = resolveImageSource(image, {
+  width: resolvedWidth,
+  widths: widths ?? preset?.widths,
+  sizes: sizes ?? preset?.sizes,
+});
+
+const aspectRatio = source.width / source.height;
+const displayHeight = Math.round(resolvedWidth / aspectRatio);
+
+const lqipStyle = source.lqip 
+  ? `background-image: url("${source.lqip}"); background-size: cover; background-position: center;` 
+  : '';
 ---
 
-<Image
-  src={buildImageUrl(image, { width: resolvedWidth })}
+<img
+  src={source.src}
+  srcset={source.srcSet}
+  sizes={source.sizes}
   alt={resolvedAlt}
   width={resolvedWidth}
-  height={height}
-  widths={resolvedWidths}
-  sizes={resolvedSizes}
+  height={displayHeight}
   loading={loading}
-  class={className}
-  format="webp"
+  decoding="async"
+  class:list={[className, "bg-surface/50 transition-all duration-[var(--duration-slow)] ease-[var(--easing-film)]"]}
+  style={lqipStyle}
 />
