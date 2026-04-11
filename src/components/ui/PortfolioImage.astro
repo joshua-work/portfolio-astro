@@ -12,6 +12,7 @@ type Props = {
   class?: string;
   sizes?: string;
   loading?: 'eager' | 'lazy';
+  fetchpriority?: 'high' | 'low' | 'auto';
 };
 
 const {
@@ -23,6 +24,7 @@ const {
   class: className = '',
   sizes,
   loading = 'lazy',
+  fetchpriority = 'auto',
 } = Astro.props;
 
 const preset = variant ? imagePresets[variant] : undefined;
@@ -55,6 +57,7 @@ const lqipStyle = source.lqip
   width={resolvedWidth}
   height={displayHeight}
   loading={loading}
+  fetchpriority={fetchpriority}
   decoding="async"
   class:list={[className, "bg-surface/50 transition-all duration-[var(--duration-slow)] ease-[var(--easing-film)]"]}
   style={lqipStyle}
