@@ -96,3 +96,7 @@ export type ContactPage = {
   email: string;
   socialLinks: SocialLink[];
 };
+
+export type Tag = {
+  title: string;
+};

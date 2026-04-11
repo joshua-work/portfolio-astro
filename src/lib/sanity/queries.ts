@@ -127,3 +127,7 @@ export const contactPageQuery = `*[_type == "contactPage"][0] {
     href
   }
 }`;
+
+export const allTagsQuery = `*[_type == "tag"] | order(title asc) {
+  title
+}`;
