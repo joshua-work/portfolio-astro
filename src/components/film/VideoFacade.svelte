@@ -1,10 +1,9 @@
 <script lang="ts">
-  import playIcon from 'media-icons/dist/icons/play.js';
-  import pauseIcon from 'media-icons/dist/icons/pause.js';
-  import replayIcon from 'media-icons/dist/icons/replay.js';
-
   import { fade } from 'svelte/transition';
   import type { MediaSrc } from 'vidstack';
+  import { MediaRemoteControl } from 'vidstack';
+  import 'vidstack/icons';
+
 
   import type { ResolvedImageSource } from '@/lib/sanity/image';
   import type { FilmVideoSource } from '@/lib/sanity/types';
@@ -34,6 +33,7 @@
   let playerEnded = $state(false);
   let playIndicatorEnabled = $state(false);
 
+  let replayKey = $state(0);
   let isPlayerActive = $state(false);
   let isPlayerLoading = $state(false);
   let areScriptsLoaded = false;
@@ -65,53 +65,43 @@
     isPlayerActive = true;
   }
 
+  const remote = new MediaRemoteControl();
+
   $effect(() => {
     if (!playerEl) return;
 
-    const handlePlay = () => {
-      playerStarted = true;
-      playerState = 'playing';
-      playerEnded = false;
-    };
+    let unsubscribe: (() => void) | undefined;
 
-    const handlePause = () => {
-      playerState = 'idle';
-      playIndicatorEnabled = true;
-    };
+    // Ensure the custom element is defined before calling Vidstack-specific methods
+    customElements.whenDefined('media-player').then(() => {
+      // Check if the component is still mounted
+      if (!playerEl) return;
 
-    const handleEnded = () => {
-      playerState = 'idle';
-      playerStarted = false;
-      playerEnded = true;
-    };
+      remote.setTarget(playerEl);
 
-    const handleError = () => {
-      playerState = 'unsupported';
-    };
-
-    // Listen to both standard and vds-prefixed events for maximum compatibility
-    playerEl.addEventListener('play', handlePlay);
-    playerEl.addEventListener('playing', handlePlay);
-    playerEl.addEventListener('vds-play', handlePlay);
-    playerEl.addEventListener('vds-playing', handlePlay);
-    playerEl.addEventListener('pause', handlePause);
-    playerEl.addEventListener('vds-pause', handlePause);
-    playerEl.addEventListener('ended', handleEnded);
-    playerEl.addEventListener('vds-ended', handleEnded);
-    playerEl.addEventListener('error', handleError);
-    playerEl.addEventListener('vds-error', handleError);
+      unsubscribe = (playerEl as any).subscribe((state) => {
+        if (state.playing) {
+          playerStarted = true;
+          playerState = 'playing';
+          playerEnded = false;
+        } else if (state.paused && !state.ended) {
+          playerState = 'idle';
+          if (state.started) {
+            playIndicatorEnabled = true;
+          }
+        } else if (state.ended) {
+          playerState = 'idle';
+          playerStarted = false;
+          playerEnded = true;
+        } else if (state.error) {
+          playerState = 'unsupported';
+        }
+      });
+    });
 
     return () => {
-      playerEl?.removeEventListener('play', handlePlay);
-      playerEl?.removeEventListener('playing', handlePlay);
-      playerEl?.removeEventListener('vds-play', handlePlay);
-      playerEl?.removeEventListener('vds-playing', handlePlay);
-      playerEl?.removeEventListener('pause', handlePause);
-      playerEl?.removeEventListener('vds-pause', handlePause);
-      playerEl?.removeEventListener('ended', handleEnded);
-      playerEl?.removeEventListener('vds-ended', handleEnded);
-      playerEl?.removeEventListener('error', handleError);
-      playerEl?.removeEventListener('vds-error', handleError);
+      if (unsubscribe) unsubscribe();
+      remote.setTarget(null);
     };
   });
 
@@ -240,14 +230,16 @@
           <!-- 初始可見的播放按鈕 -->
           <div class="custom-play-button relative z-10 flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md">
             <div class="h-10 w-10">
-              <svg viewBox="0 0 32 32" class="fill-current">{@html playIcon}</svg>
+              <media-icon type="play"></media-icon>
             </div>
           </div>
         </button>
       {:else}
+      {#key replayKey}
       <media-player
         bind:this={playerEl}
-        class="vidstack-player block h-full w-full"
+        class="vidstack-player media-player block w-full"
+        style="aspect-ratio: 16/9;"
         class:is-started={playerStarted}
         src={resolvedSource.playerSrc}
         title={playerTitle}
@@ -259,6 +251,11 @@
         data-allow-play-indicator={playIndicatorEnabled}
       >
         <media-provider>
+          <media-poster
+            class="absolute inset-0 z-1 block h-full w-full object-cover opacity-100 transition-opacity duration-300 media-started:opacity-0"
+            src={poster.src}
+            alt={playerTitle}
+          ></media-poster>
           <media-gesture event="click" action={"toggle:play" as any}></media-gesture>
           <media-gesture event="dblclick" action={"toggle:fullscreen" as any}></media-gesture>
         </media-provider>
@@ -267,10 +264,10 @@
         <div class="media-indicator-container pointer-events-none absolute inset-0 z-50 hidden items-center justify-center md:flex">
           <div class="media-indicator">
             <div class="media-indicator-icon play-icon">
-              <svg viewBox="0 0 32 32">{@html playIcon}</svg>
+              <media-icon type="play"></media-icon>
             </div>
             <div class="media-indicator-icon pause-icon">
-              <svg viewBox="0 0 32 32">{@html pauseIcon}</svg>
+              <media-icon type="pause"></media-icon>
             </div>
           </div>
         </div>
@@ -283,25 +280,19 @@
             role="button"
             tabindex="0"
             aria-label="Replay video"
-            onclick={(e) => {
-              const player = (e.currentTarget as HTMLElement).closest('media-player');
-              if (player && typeof player.play === 'function') {
-                playIndicatorEnabled = false;
-                player.play();
-                playerEnded = false;
-                playerStarted = true;
-              }
+            onclick={() => {
+              playIndicatorEnabled = false;
+              playerEnded = false;
+              playerStarted = false;
+              replayKey += 1;
             }}
             onkeydown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                const player = (e.currentTarget as HTMLElement).closest('media-player');
-                if (player && typeof player.play === 'function') {
-                  playIndicatorEnabled = false;
-                  player.play();
-                  playerEnded = false;
-                  playerStarted = true;
-                }
+                playIndicatorEnabled = false;
+                playerEnded = false;
+                playerStarted = false;
+                replayKey += 1;
               }
             }}
           >
@@ -309,21 +300,17 @@
               type="button"
               onclick={(e) => {
                 e.stopPropagation();
-                // Find the player and play it
-                const player = (e.currentTarget as HTMLElement).closest('media-player');
-                if (player && typeof player.play === 'function') {
-                  playIndicatorEnabled = false;
-                  player.play();
-                  playerEnded = false;
-                  playerStarted = true;
-                }
+                playIndicatorEnabled = false;
+                playerEnded = false;
+                playerStarted = false;
+                replayKey += 1;
               }}
               class="flex flex-col items-center gap-4 focus-ring"
               aria-label="Replay video"
             >
               <div class="flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all duration-300 group-hover/replay:scale-110 group-hover/replay:border-accent group-hover/replay:bg-accent group-hover/replay:text-black">
                 <div class="h-10 w-10">
-                  <svg viewBox="0 0 32 32">{@html replayIcon}</svg>
+                  <media-icon type="replay"></media-icon>
                 </div>
               </div>
               <span class="text-sm font-medium uppercase tracking-[0.25em] text-white opacity-80 group-hover/replay:opacity-100">
@@ -333,17 +320,9 @@
           </div>
         {/if}
 
-        <!-- 手動管理的 Poster 遮罩，確保在 YouTube 載入時不會閃黑畫面 -->
-        <div
-          class="custom-poster-overlay absolute inset-0 z-[1] pointer-events-none {playerStarted
-            ? 'opacity-0'
-            : 'opacity-100'}"
-          style="background-image: url({poster.src}); background-size: cover; background-position: center;"
-          aria-hidden="true"
-        ></div>
-
         <media-video-layout></media-video-layout>
       </media-player>
+      {/key}
       {/if}
     </div>
   {:else}
@@ -353,7 +332,7 @@
         class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,110,0.18),transparent_42%)]"
       ></div>
       <div class="relative flex h-full items-end p-5 md:p-6">
-        <div class="max-w-md rounded-[1.5rem] border border-white/10 bg-black/60 p-5 backdrop-blur-md">
+        <div class="max-w-md rounded-3xl border border-white/10 bg-black/60 p-5 backdrop-blur-md">
           <p class="text-xs uppercase tracking-[0.22em] text-accent">External video</p>
           <p class="mt-3 text-sm leading-6 text-primary/88">
             This source cannot be played inline here. Open it in a new tab to watch the video.
@@ -362,7 +341,7 @@
             href={resolvedSource.watchUrl}
             target="_blank"
             rel="noreferrer"
-            class="mt-4 inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm uppercase tracking-[0.18em] text-primary transition-colors duration-[var(--duration-base)] ease-[var(--easing-film)] hover:border-accent/50 hover:text-accent focus-ring"
+            class="mt-4 inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm uppercase tracking-[0.18em] text-primary transition-colors duration-(--duration-base) ease-(--easing-film) hover:border-accent/50 hover:text-accent focus-ring"
           >
             Open video
           </a>
@@ -492,21 +471,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: opacity var(--duration-fast) var(--easing-film);
   }
 
-  :global(.media-indicator-icon svg) {
+  :global(media-player:not([data-paused]) .play-icon) {
+    opacity: 1;
+  }
+
+  :global(media-player[data-paused] .pause-icon) {
+    opacity: 1;
+  }
+
+  :global(.media-indicator-icon svg),
+  :global(.media-indicator-icon media-icon) {
     width: 100%;
     height: 100%;
     fill: currentColor;
-  }
-
-  /* Show the correct icon based on state when the animation triggers */
-  :global(media-player[data-paused]) .pause-icon {
-    opacity: 1;
-  }
-
-  :global(media-player:not([data-paused])) .play-icon {
-    opacity: 1;
   }
 
   /* Separate animations to ensure they restart on state change */
