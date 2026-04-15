@@ -4,7 +4,6 @@
   import { MediaRemoteControl } from 'vidstack';
   import 'vidstack/icons';
 
-
   import type { ResolvedImageSource } from '@/lib/sanity/image';
   import type { FilmVideoSource } from '@/lib/sanity/types';
 
@@ -32,38 +31,16 @@
   let playerStarted = $state(false);
   let playerEnded = $state(false);
   let playIndicatorEnabled = $state(false);
+  let isPlayerLoading = $state(false);
 
   let replayKey = $state(0);
-  let isPlayerActive = $state(false);
-  let isPlayerLoading = $state(false);
-  let areScriptsLoaded = false;
 
-  async function preloadScripts() {
-    if (areScriptsLoaded || isPlayerLoading) return;
-    isPlayerLoading = true;
-    
-    try {
-      await import('vidstack/player');
-      await import('vidstack/player/layouts/default');
-      await import('vidstack/player/ui');
-      areScriptsLoaded = true;
-    } catch (error) {
-      console.error("Failed to preload video player:", error);
-    } finally {
-      isPlayerLoading = false;
-    }
-  }
-
-  function loadAndPlay() {
-    if (isPlayerActive) return;
-    
-    // 如果尚未預載完成，則在此載入
-    if (!areScriptsLoaded) {
-      preloadScripts();
-    }
-    
-    isPlayerActive = true;
-  }
+  $effect(() => {
+    // Preload Vidstack core scripts when component mounts
+    import('vidstack/player').catch(console.error);
+    import('vidstack/player/layouts/default').catch(console.error);
+    import('vidstack/player/ui').catch(console.error);
+  });
 
   const remote = new MediaRemoteControl();
 
@@ -72,9 +49,7 @@
 
     let unsubscribe: (() => void) | undefined;
 
-    // Ensure the custom element is defined before calling Vidstack-specific methods
     customElements.whenDefined('media-player').then(() => {
-      // Check if the component is still mounted
       if (!playerEl) return;
 
       remote.setTarget(playerEl);
@@ -82,6 +57,7 @@
       unsubscribe = (playerEl as any).subscribe((state) => {
         if (state.playing) {
           playerStarted = true;
+          isPlayerLoading = false;
           playerState = 'playing';
           playerEnded = false;
         } else if (state.paused && !state.ended) {
@@ -95,6 +71,7 @@
           playerEnded = true;
         } else if (state.error) {
           playerState = 'unsupported';
+          isPlayerLoading = false;
         }
       });
     });
@@ -204,37 +181,14 @@
 
 <div
   class="relative z-10 h-full w-full overflow-hidden isolate group"
-  class:is-loading={isPlayerActive && !playerStarted}
+  class:is-loading={isPlayerLoading && !playerStarted}
   data-player-root
   data-provider={video.provider}
   data-state={playerState}
   role="application"
-  onmouseenter={preloadScripts}
 >
   {#if resolvedSource.kind === 'player'}
     <div class="player-shell relative h-full w-full bg-background">
-      {#if !isPlayerActive}
-        <button
-          type="button"
-          class="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center overflow-hidden border-0 bg-transparent p-0"
-          onclick={loadAndPlay}
-          aria-label="Play video"
-        >
-          <!-- 縮圖背景 -->
-          <div
-            class="custom-poster-overlay absolute inset-0 z-0"
-            style="background-image: url({poster.src}); background-size: cover; background-position: center;"
-            aria-hidden="true"
-          ></div>
-          
-          <!-- 初始可見的播放按鈕 -->
-          <div class="custom-play-button relative z-10 flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md">
-            <div class="h-10 w-10">
-              <media-icon type="play"></media-icon>
-            </div>
-          </div>
-        </button>
-      {:else}
       {#key replayKey}
       <media-player
         bind:this={playerEl}
@@ -244,18 +198,23 @@
         src={resolvedSource.playerSrc}
         title={playerTitle}
         viewType="video"
-        load="eager"
+        load="play"
         autoplay
         posterLoad="eager"
         playsinline
         data-allow-play-indicator={playIndicatorEnabled}
+        onclick={() => {
+          if (!playerStarted) isPlayerLoading = true;
+        }}
       >
         <media-provider>
-          <media-poster
-            class="absolute inset-0 z-1 block h-full w-full object-cover opacity-100 transition-opacity duration-300 media-started:opacity-0"
-            src={poster.src}
-            alt={playerTitle}
-          ></media-poster>
+          <!-- 縮圖背景 -->
+          <div
+            class="custom-poster-overlay absolute inset-0 z-0 pointer-events-none opacity-100 transition-opacity duration-300 media-started:opacity-0"
+            style="background-image: url({poster.src}); background-size: cover; background-position: center;"
+            aria-hidden="true"
+          ></div>
+
           <media-gesture event="click" action={"toggle:play" as any}></media-gesture>
           <media-gesture event="dblclick" action={"toggle:fullscreen" as any}></media-gesture>
         </media-provider>
@@ -284,6 +243,7 @@
               playIndicatorEnabled = false;
               playerEnded = false;
               playerStarted = false;
+              isPlayerLoading = true;
               replayKey += 1;
             }}
             onkeydown={(e) => {
@@ -292,6 +252,7 @@
                 playIndicatorEnabled = false;
                 playerEnded = false;
                 playerStarted = false;
+                isPlayerLoading = true;
                 replayKey += 1;
               }
             }}
@@ -303,6 +264,7 @@
                 playIndicatorEnabled = false;
                 playerEnded = false;
                 playerStarted = false;
+                isPlayerLoading = true;
                 replayKey += 1;
               }}
               class="flex flex-col items-center gap-4 focus-ring"
@@ -323,7 +285,6 @@
         <media-video-layout></media-video-layout>
       </media-player>
       {/key}
-      {/if}
     </div>
   {:else}
     <div class="relative h-full w-full bg-background">
@@ -411,31 +372,14 @@
       opacity var(--duration-slow) var(--easing-film);
   }
 
-  .custom-play-button {
-    transform: scale(1);
-    transition: 
-      transform var(--duration-base) var(--easing-film),
-      background-color var(--duration-base) var(--easing-film),
-      color var(--duration-base) var(--easing-film),
-      border-color var(--duration-base) var(--easing-film);
-  }
-
   /* Hover 狀態 */
   .group:hover .custom-poster-overlay {
     transform: scale(1.05);
   }
 
-  /* 關鍵：點擊後進入 Loading 狀態或開始播放前，強制維持放大狀態 */
-  :global(.is-loading) .custom-poster-overlay,
-  .vidstack-player:not(.is-started) .custom-poster-overlay {
+  /* 關鍵：點擊後進入 Loading 狀態，強制維持放大狀態 */
+  :global(.is-loading) .custom-poster-overlay {
     transform: scale(1.05);
-  }
-
-  .group:hover .custom-play-button {
-    transform: scale(1.1);
-    border-color: var(--color-accent);
-    background-color: var(--color-accent);
-    color: var(--color-bg-base);
   }
 
   .vidstack-player :global(.vds-video-layout .vds-controls[data-visible]) {
@@ -534,14 +478,26 @@
   }
 
   .vidstack-player:not(.is-started) :global(.vds-play-button) {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background-color: rgb(0 0 0 / 0.4);
+    color: white;
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: 
       transform var(--duration-base) var(--easing-film), 
       background-color var(--duration-base) var(--easing-film), 
-      color var(--duration-base) var(--easing-film);
+      color var(--duration-base) var(--easing-film),
+      border-color var(--duration-base) var(--easing-film);
   }
 
   .vidstack-player:not([data-started]):hover :global(.vds-play-button) {
     transform: scale(1.1);
+    border-color: var(--color-accent);
     background-color: var(--color-accent);
     color: var(--color-bg-base);
   }
