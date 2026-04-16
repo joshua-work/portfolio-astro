@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition';
   import type { MediaSrc } from 'vidstack';
   import { MediaRemoteControl } from 'vidstack';
+  import 'vidstack/bundle';
   import 'vidstack/icons';
 
   import type { ResolvedImageSource } from '@/lib/sanity/image';
@@ -29,55 +29,16 @@
   let playerEl = $state<HTMLElement | null>(null);
   let playerState = $state<'idle' | 'playing' | 'unsupported'>('idle');
   let playerStarted = $state(false);
-  let playerEnded = $state(false);
   let playIndicatorEnabled = $state(false);
   let isPlayerLoading = $state(false);
-
-  let replayKey = $state(0);
-
-  $effect(() => {
-    // Preload Vidstack core scripts when component mounts
-    import('vidstack/player').catch(console.error);
-    import('vidstack/player/layouts/default').catch(console.error);
-    import('vidstack/player/ui').catch(console.error);
-  });
 
   const remote = new MediaRemoteControl();
 
   $effect(() => {
-    if (!playerEl) return;
-
-    let unsubscribe: (() => void) | undefined;
-
-    customElements.whenDefined('media-player').then(() => {
-      if (!playerEl) return;
-
+    if (playerEl) {
       remote.setTarget(playerEl);
-
-      unsubscribe = (playerEl as any).subscribe((state) => {
-        if (state.playing) {
-          playerStarted = true;
-          isPlayerLoading = false;
-          playerState = 'playing';
-          playerEnded = false;
-        } else if (state.paused && !state.ended) {
-          playerState = 'idle';
-          if (state.started) {
-            playIndicatorEnabled = true;
-          }
-        } else if (state.ended) {
-          playerState = 'idle';
-          playerStarted = false;
-          playerEnded = true;
-        } else if (state.error) {
-          playerState = 'unsupported';
-          isPlayerLoading = false;
-        }
-      });
-    });
-
+    }
     return () => {
-      if (unsubscribe) unsubscribe();
       remote.setTarget(null);
     };
   });
@@ -189,7 +150,6 @@
 >
   {#if resolvedSource.kind === 'player'}
     <div class="player-shell relative h-full w-full bg-background">
-      {#key replayKey}
       <media-player
         bind:this={playerEl}
         class="vidstack-player media-player block w-full"
@@ -198,29 +158,47 @@
         src={resolvedSource.playerSrc}
         title={playerTitle}
         viewType="video"
-        load="play"
-        autoplay
+        load="idle"
         posterLoad="eager"
-        playsinline
+        playsInline
         data-allow-play-indicator={playIndicatorEnabled}
         onclick={() => {
           if (!playerStarted) isPlayerLoading = true;
         }}
+        onplay={() => {
+          playerStarted = true;
+          isPlayerLoading = false;
+          playerState = 'playing';
+        }}
+        onpause={() => {
+          playerState = 'idle';
+          if (playerStarted) {
+            playIndicatorEnabled = true;
+          }
+        }}
+        onended={() => {
+          playerState = 'idle';
+          playerStarted = false;
+        }}
+        onerror={() => {
+          playerState = 'unsupported';
+          isPlayerLoading = false;
+        }}
       >
         <media-provider>
           <!-- 縮圖背景 -->
-          <div
+          <media-poster
             class="custom-poster-overlay absolute inset-0 z-0 pointer-events-none opacity-100 transition-opacity duration-300 media-started:opacity-0"
-            style="background-image: url({poster.src}); background-size: cover; background-position: center;"
-            aria-hidden="true"
-          ></div>
+            src={poster.src}
+            alt={playerTitle}
+          ></media-poster>
 
           <media-gesture event="click" action={"toggle:play" as any}></media-gesture>
           <media-gesture event="dblclick" action={"toggle:fullscreen" as any}></media-gesture>
         </media-provider>
 
         <!-- Play/Pause Center Indicator (Desktop Only) -->
-        <div class="media-indicator-container pointer-events-none absolute inset-0 z-50 hidden items-center justify-center md:flex">
+        <div class="media-indicator-container pointer-events-none absolute inset-0 z-50 hidden items-center justify-center md:flex media-ended:hidden">
           <div class="media-indicator">
             <div class="media-indicator-icon play-icon">
               <media-icon type="play"></media-icon>
@@ -232,59 +210,55 @@
         </div>
 
         <!-- Replay Overlay (Desktop Only) -->
-        {#if playerEnded}
-          <div
-            transition:fade={{ duration: 400 }}
-            class="replay-overlay group/replay absolute inset-0 z-20 hidden cursor-pointer items-center justify-center bg-black/32 backdrop-blur-[2px] md:flex"
-            role="button"
-            tabindex="0"
-            aria-label="Replay video"
-            onclick={() => {
+        <div
+          class="replay-overlay group/replay absolute inset-0 z-20 cursor-pointer items-center justify-center bg-black/32 backdrop-blur-[2px] hidden md:flex opacity-0 pointer-events-none transition-opacity duration-400 media-ended:opacity-100 media-ended:pointer-events-auto"
+          role="button"
+          tabindex="0"
+          aria-label="Replay video"
+          onclick={() => {
+            playIndicatorEnabled = false;
+            playerStarted = false;
+            isPlayerLoading = true;
+            remote.seek(0);
+            remote.play();
+          }}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
               playIndicatorEnabled = false;
-              playerEnded = false;
               playerStarted = false;
               isPlayerLoading = true;
-              replayKey += 1;
+              remote.seek(0);
+              remote.play();
+            }
+          }}
+        >
+          <button
+            type="button"
+            onclick={(e) => {
+              e.stopPropagation();
+              playIndicatorEnabled = false;
+              playerStarted = false;
+              isPlayerLoading = true;
+              remote.seek(0);
+              remote.play();
             }}
-            onkeydown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                playIndicatorEnabled = false;
-                playerEnded = false;
-                playerStarted = false;
-                isPlayerLoading = true;
-                replayKey += 1;
-              }
-            }}
+            class="flex flex-col items-center gap-4 focus-ring"
+            aria-label="Replay video"
           >
-            <button
-              type="button"
-              onclick={(e) => {
-                e.stopPropagation();
-                playIndicatorEnabled = false;
-                playerEnded = false;
-                playerStarted = false;
-                isPlayerLoading = true;
-                replayKey += 1;
-              }}
-              class="flex flex-col items-center gap-4 focus-ring"
-              aria-label="Replay video"
-            >
-              <div class="flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all duration-300 group-hover/replay:scale-110 group-hover/replay:border-accent group-hover/replay:bg-accent group-hover/replay:text-black">
-                <div class="h-10 w-10">
-                  <media-icon type="replay"></media-icon>
-                </div>
+            <div class="flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition-all duration-300 group-hover/replay:scale-110 group-hover/replay:border-accent group-hover/replay:bg-accent group-hover/replay:text-black">
+              <div class="h-10 w-10">
+                <media-icon type="replay"></media-icon>
               </div>
-              <span class="text-sm font-medium uppercase tracking-[0.25em] text-white opacity-80 group-hover/replay:opacity-100">
-                Replay
-              </span>
-            </button>
-          </div>
-        {/if}
+            </div>
+            <span class="text-sm font-medium uppercase tracking-[0.25em] text-white opacity-80 group-hover/replay:opacity-100">
+              Replay
+            </span>
+          </button>
+        </div>
 
         <media-video-layout></media-video-layout>
       </media-player>
-      {/key}
     </div>
   {:else}
     <div class="relative h-full w-full bg-background">
