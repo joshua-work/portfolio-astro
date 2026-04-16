@@ -475,4 +475,10 @@
     background-color: var(--color-accent);
     color: var(--color-bg-base);
   }
+
+  /* 隱藏 YouTube/Vimeo 原生的緩衝圖示重疊問題 */
+  [data-provider="youtube"] :global(.vds-buffering-indicator),
+  [data-provider="vimeo"] :global(.vds-buffering-indicator) {
+    display: none !important;
+  }
 </style>
