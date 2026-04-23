@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "vidstack/player/styles/default/theme.css";
 @import "vidstack/player/styles/default/layouts/video.css";
+@plugin "vidstack/tailwind.cjs" {
+  selector: ".media-player";
+  prefix: "media";
+}
 
 :root {
   color-scheme: dark;

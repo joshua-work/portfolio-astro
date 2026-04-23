@@ -31,7 +31,6 @@
 - **Attributes:** 
     - Always set `view-type="video"` on the player.
     - Set `poster-load="eager"` to show the thumbnail immediately.
-    - Nest `<media-poster>` inside `<media-provider>`.
 
 ### 3.3 Routing & Transitions (Astro 5.x)
 - **ClientRouter:** Use `<ClientRouter />` (replacing deprecated `ViewTransitions`) in `BaseLayout.astro`.
